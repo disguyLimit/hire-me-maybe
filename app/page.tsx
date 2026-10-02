@@ -3274,13 +3274,20 @@ function SeekerCard({ job, score, tier, canLike, onPass, onLike, onDetails }: { 
   const rotate = useTransform(x, [-200, 200], [-12, 12]);
   return (
     <motion.div
-      className="absolute inset-0 bg-white rounded-3xl shadow-2xl border border-[#cdccd5]/60 overflow-hidden flex flex-col cursor-grab active:cursor-grabbing z-10"
+      className="absolute inset-0 touch-pan-y bg-white rounded-3xl shadow-2xl border border-[#cdccd5]/60 overflow-hidden flex flex-col cursor-grab active:cursor-grabbing z-10"
       style={{ x, rotate }}
       drag="x"
+      dragDirectionLock
+      dragMomentum={false}
       dragSnapToOrigin
       dragConstraints={{ left: -300, right: canLike ? 300 : 0 }}
       dragElastic={canLike ? 0.6 : { left: 0.6, right: 0.1 }}
-      onDragEnd={(_: unknown, info: { offset: { x: number } }) => { if (info.offset.x < -100) onPass(); else if (info.offset.x > 100 && canLike) onLike(); }}
+      onDragEnd={(_, info) => {
+        const movedLeft = info.offset.x < -60 || (info.offset.x < -25 && info.velocity.x < -450);
+        const movedRight = info.offset.x > 60 || (info.offset.x > 25 && info.velocity.x > 450);
+        if (movedLeft) onPass();
+        else if (movedRight && canLike) onLike();
+      }}
       initial={{ opacity: 0, scale: 0.96 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
