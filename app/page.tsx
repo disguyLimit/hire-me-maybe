@@ -2,39 +2,26 @@
 
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-motion';
-import { Lock, Ban, Trash2, Cookie, Monitor, Mail, Smartphone, Moon, Clock, Shield, SlidersHorizontal, CreditCard, Link2, Camera, Pencil, BadgeCheck, Eye, Download, Plus, ChevronDown, Star, Send, Home, Users, MessageCircle, Briefcase, CalendarDays, Bell, Heart, ChevronLeft, ChevronRight, Crown, Lightbulb, User, MapPin, Search, UploadCloud, FileText, X, EyeOff, Globe, Code, Compass, Handshake, Settings, Building2 } from 'lucide-react';
+import { Info, Bookmark, Sparkles, Lock, Ban, Trash2, Cookie, Monitor, Mail, Smartphone, Moon, Clock, Shield, SlidersHorizontal, CreditCard, Link2, Camera, Pencil, BadgeCheck, Eye, Download, Plus, ChevronDown, Star, Send, Home, Users, MessageCircle, Briefcase, CalendarDays, Bell, Heart, ChevronLeft, ChevronRight, Crown, Lightbulb, User, MapPin, Search, UploadCloud, FileText, X, EyeOff, Globe, Code, Compass, Handshake, Settings, Building2 } from 'lucide-react';
 
 // --- MOCK DATA ---
 const initialUserProfile = {
-  name: "Alex Reyes",
-  bio: "Passionate front-end developer looking for opportunities to build responsive, accessible web applications.",
-  education: "BS Computer Science",
-  certs: ["AWS Cloud Practitioner", "React Native Certification"],
-  skills: ["React", "JavaScript", "Tailwind CSS", "Figma", "Git"],
+  name: "Juan Dela Cruz",
+  bio: "Business graduate with a strong interest in data, marketing and customer experience. Looking for an entry-level role where I can grow.",
+  education: "BS Business Administration",
+  certs: ["Google Data Analytics"],
+  skills: ["Data Analysis", "SQL", "Communication", "Excel", "Marketing", "Reporting"],
   resumeUploaded: false,
+  resumeName: "",
 };
 
 const jobListings = [
-  {
-    id: 1,
-    title: "Junior Frontend Engineer",
-    company: "TechNova Solutions",
-    location: "Makati City (Hybrid)",
-    reqEducation: ["BS Computer Science", "BS Information Technology"],
-    reqCerts: ["React Native Certification"],
-    reqSkills: ["React", "JavaScript", "Tailwind CSS"],
-    image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=600&q=80"
-  },
-  {
-    id: 2,
-    title: "Senior Full Stack Developer",
-    company: "Innovate Financial",
-    location: "BGC, Taguig",
-    reqEducation: ["BS Computer Science"],
-    reqCerts: ["AWS Solutions Architect", "Certified Kubernetes Administrator"],
-    reqSkills: ["React", "Node.js", "Python", "Docker", "AWS"],
-    image: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=600&q=80"
-  }
+  { id: 1, title: "Business Analyst", company: "Accenture", location: "Taguig, Metro Manila", jobType: "Full-time", workSetup: "Hybrid", level: "Mid", reqEducation: ["BS Business Administration", "BS Information Technology"], reqCerts: ["Google Data Analytics"], reqSkills: ["Data Analysis", "SQL", "Communication", "Process Improvement"], description: "Support business teams in analyzing data, identifying opportunities, and driving process improvements.", color: "from-[#353457] to-purple-400" },
+  { id: 2, title: "Marketing Specialist", company: "SM Investments", location: "Pasig, Metro Manila", jobType: "Full-time", workSetup: "On-site", level: "Entry", reqEducation: ["BS Business Administration", "BS Marketing"], reqCerts: [] as string[], reqSkills: ["Marketing", "Communication", "Adobe Creative Suite", "SEO"], description: "Plan and run campaigns that grow brand awareness across digital and in-store channels.", color: "from-[#686781] to-sky-300" },
+  { id: 3, title: "Customer Support Specialist", company: "Globe Telecom", location: "Makati City, Metro Manila", jobType: "Full-time", workSetup: "Hybrid", level: "Entry", reqEducation: ["BS Business Administration", "BS Information Technology"], reqCerts: [] as string[], reqSkills: ["Communication", "Customer Service", "Problem Solving"], description: "Help customers through chat and phone, resolve issues quickly and keep satisfaction high.", color: "from-[#03012d] to-[#686781]" },
+  { id: 4, title: "Data Entry Associate", company: "BrightPath Outsourcing", location: "Remote (Philippines)", jobType: "Full-time", workSetup: "Remote", level: "Entry", reqEducation: ["BS Business Administration", "BS Information Technology"], reqCerts: [] as string[], reqSkills: ["Excel", "Attention to Detail", "Typing"], description: "Enter and verify records accurately, keep spreadsheets organized and meet daily targets.", color: "from-purple-300 to-[#353457]" },
+  { id: 5, title: "Administrative Assistant", company: "Creative Studio PH", location: "Quezon City, Metro Manila", jobType: "Full-time", workSetup: "On-site", level: "Entry", reqEducation: ["BS Business Administration"], reqCerts: [] as string[], reqSkills: ["Communication", "Excel", "Scheduling"], description: "Keep our studio running smoothly with scheduling, documentation and team coordination.", color: "from-[#353457] to-[#686781]" },
+  { id: 6, title: "Senior Full Stack Developer", company: "Innovate Financial", location: "BGC, Taguig", jobType: "Full-time", workSetup: "Hybrid", level: "Senior", reqEducation: ["BS Computer Science"], reqCerts: ["AWS Solutions Architect", "Certified Kubernetes Administrator"], reqSkills: ["React", "Node.js", "Python", "Docker", "AWS"], description: "Lead the design and delivery of secure financial web applications.", color: "from-[#03012d] to-purple-400" },
 ];
 
 const mockApplicants = [
@@ -3241,182 +3228,561 @@ function EmployerView({ onBack, events, setEvents }: { onBack: () => void; event
 }
 
 // --- JOB SEEKER VIEW ---
-function JobSeekerView({ onBack, events, setEvents }: { onBack: () => void; events: CalEvent[]; setEvents: React.Dispatch<React.SetStateAction<CalEvent[]>> }) {
-  const [userProfile, setUserProfile] = useState(initialUserProfile);
-  const [jobs, setJobs] = useState(jobListings);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [showProfileModal, setShowProfileModal] = useState(false);
-  const [showCalendar, setShowCalendar] = useState(false);
-  const [warningData, setWarningData] = useState<{show: boolean, missing: string[], job: any}>({ show: false, missing: [], job: null });
+const moreJobs: typeof jobListings = [
+  { id: 7, title: "Digital Marketing Associate", company: "Lumina Studio", location: "Makati City, Metro Manila", jobType: "Full-time", workSetup: "Hybrid", level: "Entry", reqEducation: ["BS Business Administration", "BS Marketing"], reqCerts: [], reqSkills: ["Marketing", "SEO", "Content Writing", "Analytics"], description: "Help plan and measure digital campaigns for creative and retail brands.", color: "from-purple-300 to-[#686781]" },
+  { id: 8, title: "Data Analyst", company: "Harbor Analytics", location: "Remote (Philippines)", jobType: "Full-time", workSetup: "Remote", level: "Mid", reqEducation: ["BS Business Administration", "BS Information Technology"], reqCerts: ["Google Data Analytics"], reqSkills: ["Data Analysis", "SQL", "Excel", "Reporting"], description: "Turn business questions into dashboards and clear recommendations for client teams.", color: "from-[#353457] to-sky-300" },
+  { id: 9, title: "UI/UX Designer", company: "Northwind Digital", location: "Remote (Philippines)", jobType: "Full-time", workSetup: "Remote", level: "Mid", reqEducation: ["BS Information Technology", "BS Multimedia Arts"], reqCerts: [], reqSkills: ["UI/UX", "Figma", "Product Design", "User Research"], description: "Design intuitive, user-centered interfaces for web and mobile products.", color: "from-[#686781] to-purple-300" },
+  { id: 10, title: "Customer Success Associate", company: "Kape Collective", location: "Quezon City, Metro Manila", jobType: "Part-time", workSetup: "On-site", level: "Entry", reqEducation: ["BS Business Administration"], reqCerts: [], reqSkills: ["Communication", "Customer Service", "Excel"], description: "Welcome new customers, answer questions and keep our community happy.", color: "from-[#03012d] to-[#353457]" },
+  { id: 11, title: "Operations Intern", company: "Sunrise Retail Group", location: "Mandaluyong, Metro Manila", jobType: "Internship", workSetup: "On-site", level: "Entry", reqEducation: ["BS Business Administration"], reqCerts: [], reqSkills: ["Excel", "Communication", "Reporting"], description: "Support store operations with reports, inventory checks and team coordination.", color: "from-purple-300 to-[#353457]" },
+  { id: 12, title: "Business Development Manager", company: "PixelForge", location: "BGC, Taguig", jobType: "Contract", workSetup: "Hybrid", level: "Senior", reqEducation: ["BS Business Administration"], reqCerts: [], reqSkills: ["Sales", "Negotiation", "Communication", "Marketing"], description: "Grow partnerships and new revenue by building relationships with key clients.", color: "from-[#353457] to-[#686781]" },
+];
+const searchExtra: Record<number, { salaryMin: number; salaryMax: number; industry: string; posted: number; resp: string[] }> = {
+  1: { salaryMin: 35000, salaryMax: 55000, industry: "Consulting", posted: 2, resp: ["Analyze business data and spot improvement opportunities", "Write clear requirements for project teams", "Present findings to stakeholders"] },
+  2: { salaryMin: 25000, salaryMax: 35000, industry: "Retail", posted: 3, resp: ["Plan and run marketing campaigns", "Coordinate with creative and sales teams", "Track campaign results and report on them"] },
+  3: { salaryMin: 20000, salaryMax: 28000, industry: "Telecommunications", posted: 4, resp: ["Answer customer questions by chat and phone", "Solve issues on the first contact where possible", "Log feedback to help improve our service"] },
+  4: { salaryMin: 15000, salaryMax: 22000, industry: "BPO", posted: 5, resp: ["Enter and verify records accurately", "Keep spreadsheets clean and organized", "Meet daily accuracy and speed targets"] },
+  5: { salaryMin: 18000, salaryMax: 25000, industry: "Creative Services", posted: 1, resp: ["Manage calendars and meeting logistics", "Prepare and file documents", "Support the team with day-to-day requests"] },
+  6: { salaryMin: 110000, salaryMax: 150000, industry: "Finance", posted: 6, resp: ["Design and build secure web applications", "Review code and mentor engineers", "Plan releases with product teams"] },
+  7: { salaryMin: 22000, salaryMax: 32000, industry: "Marketing & Advertising", posted: 1, resp: ["Create and schedule content across channels", "Run SEO and social media experiments", "Report on traffic and engagement"] },
+  8: { salaryMin: 45000, salaryMax: 70000, industry: "Technology", posted: 2, resp: ["Build dashboards in SQL and BI tools", "Clean and validate data sources", "Share insights with clients each week"] },
+  9: { salaryMin: 80000, salaryMax: 120000, industry: "Technology", posted: 2, resp: ["Design user-centered interfaces and experiences", "Conduct user research and usability testing", "Create wireframes, prototypes and high-fidelity designs"] },
+  10: { salaryMin: 15000, salaryMax: 20000, industry: "Food & Hospitality", posted: 4, resp: ["Greet and support customers", "Handle orders and follow-ups", "Share customer feedback with the team"] },
+  11: { salaryMin: 10000, salaryMax: 12000, industry: "Retail", posted: 6, resp: ["Prepare daily and weekly reports", "Help with inventory checks", "Support the operations manager"] },
+  12: { salaryMin: 90000, salaryMax: 130000, industry: "Technology", posted: 7, resp: ["Find and win new partnerships", "Negotiate and close agreements", "Report on pipeline and revenue"] },
+};
+const searchCatalog = [...jobListings, ...moreJobs].map(j => ({ ...j, ...searchExtra[j.id] }));
+type SearchJob = typeof searchCatalog[number];
+const searchIndustries = Array.from(new Set(searchCatalog.map(j => j.industry))).sort();
+const defaultBenefits = ["HMO coverage from day one", "13th month pay", "Paid time off", "Learning and development budget"];
+const searchFilterDefaults = { types: [] as string[], setups: [] as string[], location: "", salaryMin: 10000, salaryMax: 150000, levels: [] as string[], industry: "", skills: [] as string[] };
+const postedLabel = (d: number) => `${d} day${d > 1 ? "s" : ""} ago`;
 
-  const filteredJobs = useMemo(() => {
-    return jobs.filter(job => job.company.toLowerCase().includes(searchQuery.toLowerCase()) || job.title.toLowerCase().includes(searchQuery.toLowerCase()));
-  }, [jobs, searchQuery]);
+type SeekerJob = typeof jobListings[number];
+const tierBadge: Record<string, string> = { green: "bg-emerald-100 text-emerald-700", orange: "bg-amber-100 text-amber-700", red: "bg-red-100 text-red-700" };
+const seekerNav = [
+  { label: "Home", icon: Home }, { label: "Search", icon: Search }, { label: "Messages", icon: MessageCircle, badge: 3 },
+  { label: "Saved Jobs", icon: Bookmark }, { label: "Calendar", icon: CalendarDays }, { label: "Profile", icon: User }, { label: "Settings", icon: Settings },
+];
+const seekerTabs = [{ label: "For You", icon: Sparkles }, { label: "Remote", icon: Globe }, { label: "On-site", icon: Building2 }, { label: "Hybrid", icon: Monitor }, { label: "Entry Level", icon: Briefcase }];
+const quickTips = ["Complete your profile to get better matches", "Keep your skills up to date", "Be active to get noticed by employers", "Upload your latest resume", "Add certifications to stand out", "Respond to interview invites quickly"];
+const activitySeed = [
+  { id: 1, kind: "like", title: "You liked a job", sub: "Business Analyst at Accenture", ago: "2h ago" },
+  { id: 2, kind: "save", title: "You saved a job", sub: "Marketing Specialist at SM Investments", ago: "5h ago" },
+  { id: 3, kind: "view", title: "Your profile was viewed", sub: "by a recruiter from Globe Telecom", ago: "1d ago" },
+];
 
-  const removeJobFromDeck = (id: number) => setJobs(prev => prev.filter(j => j.id !== id));
-
-  const handleSwipeAttempt = (job: any, direction: 'left' | 'right') => {
-    if (direction === 'left') return removeJobFromDeck(job.id);
-    const { tier, missingSkills } = calculateMatch(userProfile, job);
-    if (tier === 'green') removeJobFromDeck(job.id); 
-    else if (tier === 'orange') setWarningData({ show: true, missing: missingSkills, job });
-  };
-
+function SeekerCard({ job, score, tier, canLike, onPass, onLike, onDetails }: { job: SeekerJob; score: number; tier: string; canLike: boolean; onPass: () => void; onLike: () => void; onDetails: () => void }) {
+  const x = useMotionValue(0);
+  const rotate = useTransform(x, [-200, 200], [-12, 12]);
   return (
-    <div className="min-h-screen bg-[#cdccd5]/20 flex flex-col text-[#03012d]">
-      <header className="bg-white border-b border-[#cdccd5] p-4 flex justify-between items-center shadow-sm z-20">
-        <div className="flex items-center gap-4">
-          <button onClick={onBack} className="text-sm font-medium text-[#686781] hover:text-[#03012d]">← Log Out</button>
-          <h1 className="font-extrabold text-xl tracking-tight hidden sm:block text-[#03012d]">KAIROS</h1>
+    <motion.div
+      className="absolute inset-0 bg-white rounded-3xl shadow-2xl border border-[#cdccd5]/60 overflow-hidden flex flex-col cursor-grab active:cursor-grabbing z-10"
+      style={{ x, rotate }}
+      drag="x"
+      dragSnapToOrigin
+      dragConstraints={{ left: -300, right: canLike ? 300 : 0 }}
+      dragElastic={canLike ? 0.6 : { left: 0.6, right: 0.1 }}
+      onDragEnd={(_: unknown, info: { offset: { x: number } }) => { if (info.offset.x < -100) onPass(); else if (info.offset.x > 100 && canLike) onLike(); }}
+      initial={{ opacity: 0, scale: 0.96 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+    >
+      <div className={`relative h-44 shrink-0 bg-gradient-to-br ${job.color}`}>
+        <span className={`absolute top-4 right-4 text-xs font-bold px-3 py-1.5 rounded-full ${tierBadge[tier]}`}>{score}% Match</span>
+        <div className="absolute -bottom-7 left-5 w-16 h-16 rounded-2xl bg-white shadow-lg border border-[#cdccd5]/60 flex items-center justify-center text-2xl font-extrabold text-[#353457]">{job.company.charAt(0)}</div>
+      </div>
+      <div className="pt-10 px-5 pb-5 flex-1 flex flex-col min-h-0 overflow-y-auto select-none">
+        <p className="text-sm text-[#686781]">{job.company}</p>
+        <h2 className="text-2xl font-extrabold leading-tight">{job.title}</h2>
+        <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#686781] mt-2"><span className="flex items-center gap-1"><MapPin size={13} /> {job.location}</span><span className="flex items-center gap-1"><Briefcase size={13} /> {job.jobType}</span><span className="flex items-center gap-1"><Building2 size={13} /> {job.workSetup}</span></p>
+        <div className="flex flex-wrap gap-1.5 mt-3">
+          {job.reqSkills.slice(0, 3).map(sk => <span key={sk} className="text-xs px-2.5 py-1 bg-[#cdccd5]/30 text-[#353457] rounded-full">{sk}</span>)}
+          {job.reqSkills.length > 3 && <span className="text-xs px-2.5 py-1 bg-[#cdccd5]/30 text-[#353457] rounded-full">+{job.reqSkills.length - 3} more</span>}
         </div>
-        <div className="relative w-full max-w-md mx-4">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#9a99ab]" size={18} />
-          <input type="text" placeholder="Search companies or roles..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full bg-[#f8f9fa] border border-[#cdccd5] rounded-full py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-[#353457]" />
-        </div>
-        <div className="flex items-center gap-2">
-          <button onClick={() => setShowCalendar(true)} aria-label="Interviews" className="relative w-10 h-10 bg-white border border-[#cdccd5] rounded-full flex items-center justify-center text-[#03012d] hover:bg-gray-50 transition-colors">
-            <CalendarDays size={18} />
-            {events.some(e => e.invite && e.status === "Invited") && <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-purple-500 rounded-full"></span>}
-          </button>
-          <button onClick={() => setShowProfileModal(true)} className="w-10 h-10 bg-[#03012d] rounded-full flex items-center justify-center text-white hover:bg-[#353457] transition-colors">
-            <User size={20} />
-          </button>
-        </div>
-      </header>
-
-      <main className="flex-1 flex items-center justify-center p-4 relative overflow-hidden">
-        <div className="relative w-full max-w-sm h-[600px] flex items-center justify-center">
-          {filteredJobs.length === 0 ? (
-            <div className="text-center">
-              <h3 className="text-2xl font-bold text-[#686781] mb-2">No roles found</h3>
-            </div>
-          ) : (
-            <AnimatePresence>
-              {filteredJobs.map((job, index) => {
-                const isTop = index === filteredJobs.length - 1;
-                return isTop && <JobCard key={job.id} job={job} user={userProfile} onSwipeAttempt={(dir) => handleSwipeAttempt(job, dir)} />;
-              })}
-            </AnimatePresence>
-          )}
-        </div>
-      </main>
-
-      {/* PROFILE MODAL WITH RESUME UPLOAD */}
-      {showProfileModal && (
-        <div className="fixed inset-0 bg-[#03012d]/80 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-lg shadow-2xl relative">
-            <button onClick={() => setShowProfileModal(false)} className="absolute top-4 right-4 text-[#9a99ab] hover:text-[#03012d]"><X size={24} /></button>
-            <h2 className="text-2xl font-bold mb-6 text-[#03012d]">Edit Profile & Resume</h2>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-bold text-[#353457] mb-1">Bio</label>
-                <textarea 
-                  className="w-full border border-[#cdccd5] rounded-lg p-3 text-sm focus:outline-none focus:border-[#353457]"
-                  rows={3}
-                  value={userProfile.bio}
-                  onChange={(e) => setUserProfile({...userProfile, bio: e.target.value})}
-                />
-              </div>
-
-              <div className="border-2 border-dashed border-[#cdccd5] rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors">
-                <UploadCloud size={24} className="text-[#353457] mb-2" />
-                <p className="text-xs font-bold text-[#686781] mb-1">UPLOAD RESUME (PDF, DOCX)</p>
-                <span className="bg-[#03012d] text-white text-xs px-4 py-1.5 rounded-full font-semibold">Browse Files</span>
-              </div>
-            </div>
-
-            <button onClick={() => setShowProfileModal(false)} className="w-full mt-6 bg-[#03012d] text-white py-3 rounded-xl font-bold hover:bg-[#353457] transition-colors">
-              Save Changes
-            </button>
-          </div>
-        </div>
-      )}
-
-      {showCalendar && (
-        <div className="fixed inset-0 bg-[#03012d]/80 z-50 flex items-center justify-center p-4" onClick={() => setShowCalendar(false)}>
-          <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-2xl p-6 w-full max-w-lg shadow-2xl relative max-h-[90vh] overflow-y-auto">
-            <button onClick={() => setShowCalendar(false)} aria-label="Close" className="absolute top-4 right-4 text-[#9a99ab] hover:text-[#03012d]"><X size={22} /></button>
-            <h2 className="text-2xl font-bold mb-1 text-[#03012d]">My Interviews</h2>
-            <p className="text-xs text-[#686781] mb-4">Invites from employers and your confirmed schedule.</p>
-            {events.filter(e => e.invite && e.status !== "Cancelled").length === 0 && <p className="text-sm text-[#686781] py-6 text-center">No interview invites yet. When an employer invites you, it will show up here.</p>}
-            <ul className="space-y-3">
-              {events.filter(e => e.invite && e.status !== "Cancelled").map(e => (
-                <li key={e.id} className="border border-[#cdccd5] rounded-xl p-4 text-[#03012d]">
-                  <p className="font-bold">Creative Studio PH</p>
-                  <p className="text-sm text-[#686781]">{e.title.replace("Interview with ", "Interview for ")} • {employerCandidates.find(c => c.id === e.candidateId)?.role}</p>
-                  {e.notes && <p className="text-xs text-[#9a99ab] mt-1">{e.notes}</p>}
-                  {e.status === "Invited" && (
-                    <div className="grid grid-cols-2 gap-2 mt-3">
-                      <button onClick={() => setEvents(prev => prev.map(x => x.id === e.id ? { ...x, status: "Declined" } : x))} className="py-2 rounded-lg border border-[#cdccd5] text-sm font-semibold">Decline</button>
-                      <button onClick={() => setEvents(prev => prev.map(x => x.id === e.id ? { ...x, status: "Accepted" } : x))} className="py-2 rounded-lg bg-[#03012d] text-white text-sm font-bold hover:bg-[#353457]">Accept</button>
-                    </div>
-                  )}
-                  {e.status === "Accepted" && <p className="text-sm font-semibold text-amber-600 mt-3">Accepted. Waiting for the employer to set a date and time.</p>}
-                  {e.status === "Declined" && <p className="text-sm font-semibold text-red-500 mt-3">You declined this invite.</p>}
-                  {e.status === "Confirmed" && (
-                    <div className="mt-3 bg-emerald-50 rounded-lg p-3 text-sm">
-                      <p className="font-bold text-emerald-700">Confirmed</p>
-                      <p>{fmtDate(e.date, { weekday: "long", month: "long", day: "numeric", year: "numeric" })}</p>
-                      <p>{fmtTime(e.time)} – {fmtTime(addMinutes(e.time, e.duration))} • {e.platform}</p>
-                    </div>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      )}
-
-      {warningData.show && (
-        <div className="fixed inset-0 bg-[#03012d]/80 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl text-center relative border-t-8 border-orange-500">
-            <h2 className="text-2xl font-bold mb-2 text-[#03012d]">Partial Match</h2>
-            <div className="flex gap-4 mt-6">
-              <button onClick={() => setWarningData({ show: false, missing: [], job: null })} className="flex-1 py-3 bg-gray-100 text-[#353457] rounded-xl font-bold">Cancel</button>
-              <button onClick={() => { removeJobFromDeck(warningData.job.id); setWarningData({ show: false, missing: [], job: null }); }} className="flex-1 py-3 bg-orange-500 text-white rounded-xl font-bold">Submit Anyway</button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+        <p className="text-sm text-[#686781] mt-3 leading-relaxed">{job.description}</p>
+        <button onPointerDown={(e) => e.stopPropagation()} onClick={onDetails} className="mt-auto pt-3 text-sm font-semibold text-[#353457] hover:underline text-left">View Details &rarr;</button>
+      </div>
+    </motion.div>
   );
 }
 
-function JobCard({ job, user, onSwipeAttempt }: { job: any, user: any, onSwipeAttempt: (dir: 'left'|'right') => void }) {
-  const x = useMotionValue(0);
-  const rotate = useTransform(x, [-200, 200], [-15, 15]);
-  const opacity = useTransform(x, [-200, -100, 0, 100, 200], [0, 1, 1, 1, 0]);
+function JobSeekerView({ onBack, events, setEvents }: { onBack: () => void; events: CalEvent[]; setEvents: React.Dispatch<React.SetStateAction<CalEvent[]>> }) {
+  const [nav, setNav] = useState("Home");
+  const [userProfile, setUserProfile] = useState(initialUserProfile);
+  const [jobs, setJobs] = useState(jobListings);
+  const [tab, setTab] = useState("For You");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [minMatch, setMinMatch] = useState(0);
+  const [showFilter, setShowFilter] = useState(false);
+  const [saved, setSaved] = useState<SeekerJob[]>([]);
+  const [activity, setActivity] = useState(activitySeed);
+  const [prefs, setPrefs] = useState({ jobType: "Full-time", location: "Calamba, Laguna + 20 km", roles: "Marketing, Data Entry, Admin, Customer Support" });
+  const [prefsDraft, setPrefsDraft] = useState(prefs);
+  const [modal, setModal] = useState<null | "profile" | "prefs" | "tips" | "activity">(null);
+  const [detailsJob, setDetailsJob] = useState<SeekerJob | null>(null);
+  const [warningData, setWarningData] = useState<{ show: boolean; missing: string[]; job: SeekerJob | null }>({ show: false, missing: [], job: null });
+  const [notice, setNotice] = useState("");
+  const [skillInput, setSkillInput] = useState("");
+  const resumeRef = useRef<HTMLInputElement>(null);
+  const [sf, setSf] = useState(searchFilterDefaults);
+  const [sortBy, setSortBy] = useState("relevant");
+  const [selSearch, setSelSearch] = useState<number | null>(null);
+  const [sTab, setSTab] = useState("Overview");
+  const [applied, setApplied] = useState<number[]>([]);
+  const [showMatchInfo, setShowMatchInfo] = useState(false);
+  const [sfSkill, setSfSkill] = useState("");
 
-  const { score, tier } = calculateMatch(user, job);
-  const canSwipeRight = tier === 'green' || tier === 'orange';
+  const flash = (msg: string) => { setNotice(msg); setTimeout(() => setNotice(""), 2800); };
+  const logActivity = (kind: string, title: string, sub: string) => setActivity(prev => [{ id: Date.now(), kind, title, sub, ago: "Just now" }, ...prev]);
+  const removeJob = (id: number) => setJobs(prev => prev.filter(j => j.id !== id));
+  const matchOf = (job: SeekerJob) => calculateMatch(userProfile, job);
 
-  const handleDragEnd = (event: any, info: any) => {
-    if (info.offset.x < -100) onSwipeAttempt('left'); 
-    else if (info.offset.x > 100 && canSwipeRight) onSwipeAttempt('right'); 
+  const q = searchQuery.trim().toLowerCase();
+  const visible = useMemo(() => jobs.filter(j => {
+    if (tab === "Remote" && j.workSetup !== "Remote") return false;
+    if (tab === "On-site" && j.workSetup !== "On-site") return false;
+    if (tab === "Hybrid" && j.workSetup !== "Hybrid") return false;
+    if (tab === "Entry Level" && j.level !== "Entry") return false;
+    if (calculateMatch(userProfile, j).score < minMatch) return false;
+    return !q || [j.title, j.company, ...j.reqSkills].join(" ").toLowerCase().includes(q);
+  }).sort((a, b) => calculateMatch(userProfile, b).score - calculateMatch(userProfile, a).score), [jobs, tab, q, minMatch, userProfile]);
+
+  const top = visible[0];
+  const completion = [userProfile.bio.trim().length > 10, !!userProfile.education, userProfile.skills.length >= 5, userProfile.certs.length >= 1, userProfile.resumeUploaded].filter(Boolean).length * 20;
+  const ringC = 2 * Math.PI * 26;
+
+  const applyTo = (job: SeekerJob) => {
+    removeJob(job.id);
+    setApplied(prev => prev.includes(job.id) ? prev : [...prev, job.id]);
+    setSaved(prev => prev.filter(j => j.id !== job.id));
+    logActivity("like", "You liked a job", `${job.title} at ${job.company}`);
+    flash(`Your interest was sent to ${job.company}`);
   };
+  const likeJob = (job: SeekerJob) => {
+    const { tier, missingSkills } = matchOf(job);
+    if (tier === "green") applyTo(job);
+    else if (tier === "orange") setWarningData({ show: true, missing: missingSkills, job });
+    else flash("Your match is below the minimum for this role. Improve your profile to unlock it.");
+  };
+  const saveJob = (job: SeekerJob) => {
+    setSaved(prev => prev.some(j => j.id === job.id) ? prev : [...prev, job]);
+    removeJob(job.id);
+    logActivity("save", "You saved a job", `${job.title} at ${job.company}`);
+    flash("Saved to your Saved Jobs");
+  };
+  const toggleSave = (job: SeekerJob) => {
+    const has = saved.some(j => j.id === job.id);
+    setSaved(prev => has ? prev.filter(j => j.id !== job.id) : [...prev, job]);
+    if (!has) logActivity("save", "You saved a job", `${job.title} at ${job.company}`);
+    flash(has ? "Removed from Saved Jobs" : "Saved to your Saved Jobs");
+  };
+  const toggleIn = (list: string[], v: string) => list.includes(v) ? list.filter(x => x !== v) : [...list, v];
+  const lower = (arr: string[]) => arr.map(x => x.toLowerCase());
+  const searchResults = searchCatalog.filter(j => {
+    if (q && ![j.title, j.company, j.industry, ...j.reqSkills].join(" ").toLowerCase().includes(q)) return false;
+    if (sf.types.length && !sf.types.includes(j.jobType)) return false;
+    if (sf.setups.length && !sf.setups.includes(j.workSetup)) return false;
+    if (sf.location.trim() && !j.location.toLowerCase().includes(sf.location.trim().toLowerCase())) return false;
+    if (j.salaryMax < sf.salaryMin || j.salaryMin > sf.salaryMax) return false;
+    if (sf.levels.length && !sf.levels.map(l => l.replace(" Level", "")).includes(j.level)) return false;
+    if (sf.industry && j.industry !== sf.industry) return false;
+    if (sf.skills.length && !sf.skills.some(sk => lower(j.reqSkills).includes(sk.toLowerCase()))) return false;
+    return true;
+  }).sort((a, b) => sortBy === "newest" ? a.posted - b.posted : sortBy === "salary" ? b.salaryMax - a.salaryMax : calculateMatch(userProfile, b).score - calculateMatch(userProfile, a).score);
+  const selJob = searchResults.find(j => j.id === selSearch) ?? searchResults[0] ?? null;
+  const breakdown = (job: SeekerJob) => {
+    const edu = job.reqEducation.includes(userProfile.education) ? 30 : 0;
+    const cert = job.reqCerts.length ? Math.round((job.reqCerts.filter(c => userProfile.certs.includes(c)).length / job.reqCerts.length) * 30) : 30;
+    const skill = job.reqSkills.length ? Math.round((job.reqSkills.filter(sk => userProfile.skills.includes(sk)).length / job.reqSkills.length) * 40) : 40;
+    return { edu, cert, skill };
+  };
+  const addSkill = () => {
+    const sk = skillInput.trim();
+    if (sk && !userProfile.skills.some(x => x.toLowerCase() === sk.toLowerCase())) setUserProfile(prev => ({ ...prev, skills: [...prev.skills, sk] }));
+    setSkillInput("");
+  };
+  const pickResume = (file: File | undefined) => {
+    if (!file) return;
+    const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
+    if (!["pdf", "doc", "docx"].includes(ext)) return flash("Please upload a PDF, DOC, or DOCX file.");
+    if (file.size > 5 * 1024 * 1024) return flash("File is too large. The limit is 5 MB.");
+    setUserProfile(prev => ({ ...prev, resumeUploaded: true, resumeName: file.name }));
+    flash("Resume uploaded");
+  };
+  const respondInvite = (id: number, status: "Accepted" | "Declined") => setEvents(prev => prev.map(e => e.id === id ? { ...e, status } : e));
+  const myInvites = events.filter(e => e.invite && e.status !== "Cancelled");
+  const newInvites = events.filter(e => e.invite && e.status === "Invited").length;
+  const firstName = userProfile.name.split(" ")[0];
+  const card = "bg-white rounded-2xl shadow-lg border border-[#cdccd5]/50";
+  const activityIcon = (k: string) => k === "like" ? <Heart size={18} className="text-orange-500 fill-orange-500" /> : k === "save" ? <Bookmark size={18} className="text-[#353457] fill-[#353457]" /> : <Eye size={18} className="text-[#353457]" />;
 
   return (
-    <motion.div
-      className="absolute w-full h-full bg-white rounded-2xl shadow-xl border border-[#cdccd5] overflow-hidden flex flex-col cursor-grab active:cursor-grabbing"
-      style={{ x, rotate, opacity }}
-      drag="x"
-      dragConstraints={{ left: -300, right: canSwipeRight ? 300 : 0 }}
-      dragElastic={canSwipeRight ? 0.6 : { left: 0.6, right: 0 }}
-      onDragEnd={handleDragEnd}
-    >
-      <div className="h-48 w-full bg-cover bg-center relative" style={{ backgroundImage: `url(${job.image})` }}>
-        <div className="absolute inset-0 bg-gradient-to-t from-[#03012d]/90 to-transparent"></div>
-        <div className="absolute bottom-4 left-4 text-white">
-          <h2 className="text-2xl font-bold leading-tight">{job.title}</h2>
-          <p className="flex items-center gap-1 text-sm text-[#cdccd5] mt-1"><MapPin size={14} /> {job.location}</p>
+    <div className="min-h-screen lg:h-screen flex bg-gradient-to-br from-white via-slate-50 to-purple-100/60 text-[#03012d]">
+      {/* SIDEBAR */}
+      <aside className="hidden lg:flex w-60 shrink-0 flex-col p-5 bg-[#03012d] text-white">
+        <div className="mb-8 px-2"><p className="text-2xl font-extrabold tracking-tight">KAIROS</p><p className="text-[10px] tracking-widest text-[#9a99ab]">FOR JOB SEEKERS</p></div>
+        <nav className="flex flex-col gap-1">
+          {seekerNav.map(item => { const Icon = item.icon; const active = nav === item.label; const badge = item.label === "Calendar" ? newInvites : item.badge ?? 0; return (
+            <button key={item.label} onClick={() => setNav(item.label)} className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${active ? "bg-[#353457] text-white" : "text-[#cdccd5] hover:bg-white/10"}`}>
+              <Icon size={18} /><span className="flex-1 text-left">{item.label}</span>
+              {badge > 0 && <span className="bg-[#686781] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">{badge}</span>}
+            </button>
+          ); })}
+        </nav>
+        <div className="mt-auto rounded-2xl bg-white/10 border border-white/10 p-4 cursor-pointer hover:bg-white/15" role="button" tabIndex={0} onClick={() => flash("Pro Job Seeker plans are coming soon")}>
+          <Crown size={22} className="text-amber-300 mb-2" /><p className="font-bold text-sm">Upgrade to Pro Job Seeker</p><p className="text-xs text-[#cdccd5] mt-1">Get more matches, exclusive opportunities, and advanced insights.</p>
         </div>
+        <button onClick={onBack} className="mt-4 text-sm text-[#cdccd5] hover:text-white text-left px-2">&larr; Log Out</button>
+      </aside>
+
+      <div className="flex-1 flex flex-col min-w-0 lg:overflow-hidden">
+        {/* TOP BAR */}
+        <header className="flex items-center gap-3 p-4 lg:px-6 relative z-30">
+          <div className="relative flex-1 max-w-xl">
+            <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#9a99ab]" />
+            <input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") setNav("Search"); }} placeholder="Search for job titles, companies, or keywords..." className="w-full bg-white border border-[#cdccd5] rounded-full py-3 pl-11 pr-12 text-sm focus:outline-none focus:border-[#353457] shadow-sm" />
+            <button onClick={() => setShowFilter(v => !v)} aria-label="Filters" className="absolute right-3 top-1/2 -translate-y-1/2 text-[#686781] hover:text-[#03012d]"><SlidersHorizontal size={18} /></button>
+            {showFilter && (
+              <div className={`${card} absolute right-0 top-full mt-2 w-64 p-4 z-40`}>
+                <p className="text-sm font-bold mb-1">Minimum match: {minMatch}%</p>
+                <input type="range" min={0} max={90} step={10} value={minMatch} onChange={(e) => setMinMatch(Number(e.target.value))} className="w-full" aria-label="Minimum match" />
+                <button onClick={() => { setMinMatch(0); setShowFilter(false); }} className="mt-2 text-xs font-semibold text-[#353457] hover:underline">Reset</button>
+              </div>
+            )}
+          </div>
+          <button aria-label="Notifications" className="relative w-11 h-11 rounded-full bg-white border border-[#cdccd5] flex items-center justify-center shrink-0"><Bell size={18} /><span className="absolute top-2.5 right-3 w-2 h-2 bg-orange-500 rounded-full"></span></button>
+          <button onClick={() => setModal("profile")} className="flex items-center gap-3 shrink-0 text-left">
+            <Avatar name={userProfile.name} className="w-11 h-11 text-sm" />
+            <span className="hidden sm:block leading-tight"><span className="block font-bold text-sm">{userProfile.name}</span><span className="block text-xs text-[#686781]">Job Seeker Account</span></span>
+          </button>
+        </header>
+
+        <div className="lg:hidden flex gap-2 overflow-x-auto px-4 pb-2">
+          {seekerNav.map(item => <button key={item.label} onClick={() => setNav(item.label)} className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap ${nav === item.label ? "bg-[#353457] text-white" : "bg-white border border-[#cdccd5] text-[#686781]"}`}>{item.label}</button>)}
+          <button onClick={onBack} className="px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap bg-white border border-[#cdccd5] text-[#686781]">Log Out</button>
+        </div>
+
+        {nav === "Home" && (
+          <main className="flex-1 grid xl:grid-cols-[minmax(0,1fr)_330px] gap-5 p-4 lg:px-6 lg:pb-6 overflow-y-auto">
+            <section className="min-w-0">
+              <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
+                <div>
+                  <h1 className="text-3xl font-extrabold">Hi, {firstName}!</h1>
+                  <p className="text-xl font-extrabold">Swipe. Match. Get Hired.</p>
+                  <p className="text-sm text-[#686781] mt-1 max-w-sm">Discover job opportunities that match your skills, experience, and career goals.</p>
+                </div>
+                <div className={`${card} p-4 flex items-center gap-4`}>
+                  <div className="relative w-16 h-16 shrink-0">
+                    <svg viewBox="0 0 64 64" className="w-16 h-16 -rotate-90"><circle cx="32" cy="32" r="26" fill="none" stroke="#e4e4ea" strokeWidth="6" /><circle cx="32" cy="32" r="26" fill="none" stroke="#353457" strokeWidth="6" strokeLinecap="round" strokeDasharray={ringC} strokeDashoffset={ringC * (1 - completion / 100)} /></svg>
+                    <span className="absolute inset-0 flex items-center justify-center text-sm font-extrabold">{completion}%</span>
+                  </div>
+                  <div><p className="font-bold text-sm">Profile Match</p><p className="text-xs text-[#686781] max-w-[160px]">Complete your profile to get more accurate matches.</p><button onClick={() => setModal("profile")} className="text-xs font-semibold text-[#353457] hover:underline mt-1">Improve Profile &rarr;</button></div>
+                </div>
+              </div>
+
+              <div className="flex gap-1.5 overflow-x-auto mb-5 bg-white/70 border border-[#cdccd5]/50 rounded-2xl p-1.5">
+                {seekerTabs.map(t => { const Icon = t.icon; return (
+                  <button key={t.label} onClick={() => setTab(t.label)} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-colors ${tab === t.label ? "bg-white shadow text-[#03012d] border-b-2 border-[#353457]" : "text-[#686781] hover:bg-white/70"}`}><Icon size={16} /> {t.label}</button>
+                ); })}
+              </div>
+
+              {top ? (
+                <div className="flex flex-col items-center">
+                  <div className="relative w-full max-w-md h-[470px]">
+                    {visible[2] && <div className="absolute inset-0 translate-x-6 rotate-6 scale-90 opacity-60 bg-white rounded-3xl border border-[#cdccd5]/60 shadow-lg p-5 pt-48"><p className="text-xs text-[#686781]">{visible[2].company}</p><p className="font-bold">{visible[2].title}</p></div>}
+                    {visible[1] && <div className="absolute inset-0 -translate-x-6 -rotate-6 scale-90 opacity-70 bg-white rounded-3xl border border-[#cdccd5]/60 shadow-lg p-5 pt-48"><p className="text-xs text-[#686781]">{visible[1].company}</p><p className="font-bold">{visible[1].title}</p><span className={`inline-block mt-1 text-[11px] font-bold px-2 py-0.5 rounded-full ${tierBadge[matchOf(visible[1]).tier]}`}>{matchOf(visible[1]).score}% Match</span></div>}
+                    <AnimatePresence mode="popLayout">
+                      <SeekerCard key={top.id} job={top} score={matchOf(top).score} tier={matchOf(top).tier} canLike={matchOf(top).tier !== "red"} onPass={() => removeJob(top.id)} onLike={() => likeJob(top)} onDetails={() => setDetailsJob(top)} />
+                    </AnimatePresence>
+                  </div>
+                  <div className="flex items-start justify-center gap-8 mt-5">
+                    {([["Pass", X, "text-red-500", () => removeJob(top.id)], ["Save", Bookmark, "text-[#353457]", () => saveJob(top)], ["Like", Heart, "text-emerald-500", () => likeJob(top)]] as const).map(([label, Icon, color, onClick]) => (
+                      <button key={label} onClick={onClick} className="flex flex-col items-center gap-2 group" aria-label={label}>
+                        <span className={`w-16 h-16 rounded-full bg-white shadow-lg border border-[#cdccd5]/50 flex items-center justify-center ${color} group-hover:scale-105 transition-transform`}><Icon size={28} /></span>
+                        <span className="text-sm font-semibold text-[#353457]">{label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className={`${card} p-10 text-center max-w-md mx-auto`}>
+                  <h2 className="text-xl font-bold mb-2">{jobs.length === 0 ? "You're all caught up" : "No jobs match these filters"}</h2>
+                  <p className="text-sm text-[#686781]">{jobs.length === 0 ? "New jobs matching your profile will show up here." : "Try another tab, a different search, or lower the minimum match."}</p>
+                </div>
+              )}
+            </section>
+
+            <aside className="space-y-4 min-w-0">
+              <div className={`${card} p-5`}>
+                <div className="flex items-center justify-between mb-3"><h3 className="font-extrabold">My Job Preferences</h3><button onClick={() => { setPrefsDraft(prefs); setModal("prefs"); }} className="flex items-center gap-1 text-xs font-semibold text-[#353457] hover:underline"><Pencil size={13} /> Edit</button></div>
+                <ul className="space-y-3">
+                  {([[Briefcase, "Job Type", prefs.jobType], [MapPin, "Location", prefs.location], [BadgeCheck, "Preferred Roles", prefs.roles]] as const).map(([Icon, label, value]) => (
+                    <li key={label}><button onClick={() => { setPrefsDraft(prefs); setModal("prefs"); }} className="w-full flex items-center gap-3 text-left"><span className="w-10 h-10 rounded-xl bg-[#353457]/10 text-[#353457] flex items-center justify-center shrink-0"><Icon size={18} /></span><span className="flex-1 min-w-0"><span className="block text-sm font-bold">{label}</span><span className="block text-xs text-[#686781]">{value}</span></span><ChevronRight size={18} className="text-[#9a99ab] shrink-0" /></button></li>
+                  ))}
+                </ul>
+              </div>
+              <div className={`${card} p-5`}>
+                <div className="flex items-center justify-between mb-3"><h3 className="font-extrabold flex items-center gap-2"><Lightbulb size={18} className="text-amber-400" /> Quick Tips</h3><button onClick={() => setModal("tips")} className="text-xs font-semibold text-[#353457] hover:underline">View All</button></div>
+                <ul className="space-y-2.5">{quickTips.slice(0, 3).map(t => <li key={t} className="flex items-center gap-2.5 text-sm"><BadgeCheck size={18} className="text-[#353457] shrink-0" /> {t}</li>)}</ul>
+              </div>
+              <div className={`${card} p-5`}>
+                <div className="flex items-center justify-between mb-3"><h3 className="font-extrabold">Recent Activity</h3><button onClick={() => setModal("activity")} className="text-xs font-semibold text-[#353457] hover:underline">View All</button></div>
+                <ul className="space-y-3">{activity.slice(0, 3).map(a => (
+                  <li key={a.id} className="flex items-center gap-3"><span className="w-10 h-10 rounded-xl bg-[#f1f1f5] flex items-center justify-center shrink-0">{activityIcon(a.kind)}</span><span className="flex-1 min-w-0"><span className="block text-sm font-bold">{a.title}</span><span className="block text-xs text-[#686781] truncate">{a.sub}</span></span><span className="text-[11px] text-[#9a99ab] shrink-0">{a.ago}</span></li>
+                ))}</ul>
+              </div>
+            </aside>
+          </main>
+        )}
+
+        {nav === "Search" && (
+          <main className="flex-1 grid xl:grid-cols-[250px_minmax(0,1fr)_390px] gap-4 p-4 lg:px-6 lg:pb-6 overflow-y-auto items-start">
+            {/* FILTERS */}
+            <aside className={`${card} p-5 space-y-5`}>
+              <div className="flex items-center justify-between"><h2 className="font-extrabold">Filters</h2><button onClick={() => { setSf(searchFilterDefaults); setSearchQuery(""); }} className="text-xs font-semibold text-[#353457] hover:underline">Clear All</button></div>
+              <div>
+                <p className="text-sm font-bold mb-1.5">Job Type</p>
+                {["Full-time", "Part-time", "Contract", "Internship"].map(t => <label key={t} className="flex items-center gap-2 text-sm py-1 text-[#686781]"><input type="checkbox" checked={sf.types.includes(t)} onChange={() => setSf(prev => ({ ...prev, types: toggleIn(prev.types, t) }))} /> {t}</label>)}
+              </div>
+              <div>
+                <p className="text-sm font-bold mb-1.5">Location</p>
+                <div className="relative mb-1.5"><MapPin size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9a99ab]" /><input value={sf.location} onChange={(e) => setSf(prev => ({ ...prev, location: e.target.value }))} placeholder="City or area" className="w-full pl-8 pr-8 py-2 border border-[#cdccd5] rounded-lg text-sm focus:outline-none focus:border-[#353457]" />{sf.location && <button onClick={() => setSf(prev => ({ ...prev, location: "" }))} aria-label="Clear location" className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#9a99ab]"><X size={14} /></button>}</div>
+                {["Remote", "Hybrid", "On-site"].map(t => <label key={t} className="flex items-center gap-2 text-sm py-1 text-[#686781]"><input type="checkbox" checked={sf.setups.includes(t)} onChange={() => setSf(prev => ({ ...prev, setups: toggleIn(prev.setups, t) }))} /> {t}</label>)}
+              </div>
+              <div>
+                <p className="text-sm font-bold mb-1">Salary Range <span className="font-normal text-[#686781]">(per month)</span></p>
+                <p className="text-xs text-[#353457] font-semibold mb-2">{peso(sf.salaryMin)} &ndash; {peso(sf.salaryMax)}{sf.salaryMax >= 150000 ? "+" : ""}</p>
+                <label className="block text-[11px] text-[#9a99ab]">Minimum<input type="range" min={10000} max={150000} step={5000} value={sf.salaryMin} onChange={(e) => { const v = Number(e.target.value); setSf(prev => ({ ...prev, salaryMin: v, salaryMax: Math.max(prev.salaryMax, v) })); }} className="w-full" aria-label="Minimum salary" /></label>
+                <label className="block text-[11px] text-[#9a99ab] mt-1">Maximum<input type="range" min={10000} max={150000} step={5000} value={sf.salaryMax} onChange={(e) => { const v = Number(e.target.value); setSf(prev => ({ ...prev, salaryMax: v, salaryMin: Math.min(prev.salaryMin, v) })); }} className="w-full" aria-label="Maximum salary" /></label>
+              </div>
+              <div>
+                <p className="text-sm font-bold mb-1.5">Experience Level</p>
+                {["Entry Level", "Mid Level", "Senior Level", "Executive"].map(t => <label key={t} className="flex items-center gap-2 text-sm py-1 text-[#686781]"><input type="checkbox" checked={sf.levels.includes(t)} onChange={() => setSf(prev => ({ ...prev, levels: toggleIn(prev.levels, t) }))} /> {t}</label>)}
+              </div>
+              <div>
+                <p className="text-sm font-bold mb-1.5">Industry</p>
+                <select value={sf.industry} onChange={(e) => setSf(prev => ({ ...prev, industry: e.target.value }))} className="w-full px-3 py-2 border border-[#cdccd5] rounded-lg text-sm focus:outline-none"><option value="">All industries</option>{searchIndustries.map(i => <option key={i}>{i}</option>)}</select>
+              </div>
+              <div>
+                <p className="text-sm font-bold mb-1.5">Skills</p>
+                <input value={sfSkill} onChange={(e) => setSfSkill(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); const v = sfSkill.trim(); if (v && !sf.skills.includes(v)) setSf(prev => ({ ...prev, skills: [...prev.skills, v] })); setSfSkill(""); } }} placeholder="Add skills (e.g. Excel, SQL)" className="w-full px-3 py-2 border border-[#cdccd5] rounded-lg text-sm focus:outline-none focus:border-[#353457]" />
+                <div className="flex flex-wrap gap-1.5 mt-2">{sf.skills.map(sk => <span key={sk} className="flex items-center gap-1 text-[11px] px-2 py-1 bg-[#353457]/10 text-[#353457] rounded-full">{sk}<button onClick={() => setSf(prev => ({ ...prev, skills: prev.skills.filter(x => x !== sk) }))} aria-label={`Remove ${sk}`}><X size={11} /></button></span>)}</div>
+                <button onClick={() => setSf(prev => ({ ...prev, skills: Array.from(new Set([...prev.skills, ...userProfile.skills])) }))} className="mt-2 text-xs font-semibold text-[#353457] hover:underline">Use my skills</button>
+              </div>
+            </aside>
+
+            {/* RESULTS */}
+            <section className={`${card} p-4 min-w-0`}>
+              <div className="flex items-start justify-between gap-3 mb-3">
+                <div><h2 className="font-extrabold">Search Results</h2><p className="text-xs text-[#686781]">Showing {searchResults.length} job{searchResults.length === 1 ? "" : "s"}{searchQuery.trim() ? ` for "${searchQuery.trim()}"` : ""}</p></div>
+                <label className="flex items-center gap-2 text-xs text-[#686781] shrink-0">Sort by<select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="border border-[#cdccd5] rounded-lg px-2 py-1.5 text-sm text-[#03012d] bg-white focus:outline-none"><option value="relevant">Most Relevant</option><option value="newest">Newest</option><option value="salary">Highest Salary</option></select></label>
+              </div>
+              {searchResults.length === 0 ? (
+                <div className="border border-dashed border-[#cdccd5] rounded-xl p-8 text-center"><p className="font-bold">No jobs found</p><p className="text-sm text-[#686781] mt-1">Try removing a filter or searching different keywords.</p><button onClick={() => { setSf(searchFilterDefaults); setSearchQuery(""); }} className="mt-3 px-4 py-2 rounded-lg bg-[#353457] text-white text-xs font-bold">Clear all filters</button></div>
+              ) : (
+                <ul className="space-y-2 xl:max-h-[calc(100vh-14rem)] overflow-y-auto pr-1">
+                  {searchResults.map(j => { const m = calculateMatch(userProfile, j); const isSaved = saved.some(x => x.id === j.id); return (
+                    <li key={j.id}>
+                      <div role="button" tabIndex={0} onClick={() => { setSelSearch(j.id); setSTab("Overview"); setShowMatchInfo(false); }} onKeyDown={(e) => { if (e.key === "Enter") { setSelSearch(j.id); setSTab("Overview"); } }} className={`w-full text-left rounded-xl border p-3 cursor-pointer transition-colors ${selJob?.id === j.id ? "border-[#353457] bg-[#353457]/5" : "border-[#cdccd5]/60 hover:bg-gray-50"}`}>
+                        <div className="flex items-start gap-3">
+                          <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${j.color} text-white text-lg font-extrabold flex items-center justify-center shrink-0`}>{j.company.charAt(0)}</div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-bold text-sm truncate">{j.title}</p>
+                            <p className="text-xs text-[#686781]">{j.company}</p>
+                            <p className="flex flex-wrap items-center gap-x-3 text-[11px] text-[#9a99ab] mt-1"><span className="flex items-center gap-1"><MapPin size={11} /> {j.workSetup}</span><span className="flex items-center gap-1"><Briefcase size={11} /> {j.jobType}</span><span>{postedLabel(j.posted)}</span></p>
+                          </div>
+                          <button onClick={(e) => { e.stopPropagation(); toggleSave(j); }} aria-label={isSaved ? "Unsave job" : "Save job"} className="shrink-0 text-[#686781] hover:text-[#03012d]"><Bookmark size={18} className={isSaved ? "fill-[#353457] text-[#353457]" : ""} /></button>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                          {j.reqSkills.slice(0, 3).map(sk => <span key={sk} className="text-[11px] px-2 py-0.5 bg-[#cdccd5]/30 text-[#353457] rounded-full">{sk}</span>)}
+                          <span className={`ml-auto text-[11px] font-bold px-2.5 py-1 rounded-full ${tierBadge[m.tier]}`}>{m.score}% Match</span>
+                        </div>
+                      </div>
+                    </li>
+                  ); })}
+                </ul>
+              )}
+            </section>
+
+            {/* DETAILS */}
+            <section className={`${card} p-5 min-w-0`}>
+              {!selJob ? <p className="text-sm text-[#686781] text-center py-16">Select a job to see its details.</p> : (() => {
+                const m = calculateMatch(userProfile, selJob);
+                const b = breakdown(selJob);
+                const isSaved = saved.some(x => x.id === selJob.id);
+                const isApplied = applied.includes(selJob.id);
+                return (
+                  <>
+                    <div className="flex items-start gap-3">
+                      <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${selJob.color} text-white text-xl font-extrabold flex items-center justify-center shrink-0`}>{selJob.company.charAt(0)}</div>
+                      <div className="flex-1 min-w-0"><h2 className="text-xl font-extrabold leading-tight">{selJob.title}</h2><p className="text-sm text-[#686781]">{selJob.company}</p></div>
+                      <button onClick={() => toggleSave(selJob)} aria-label={isSaved ? "Unsave job" : "Save job"} className="w-10 h-10 rounded-xl border border-[#cdccd5] flex items-center justify-center shrink-0"><Bookmark size={18} className={isSaved ? "fill-[#353457] text-[#353457]" : "text-[#686781]"} /></button>
+                    </div>
+                    <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[#686781] mt-3"><span className="flex items-center gap-1"><MapPin size={13} /> {selJob.workSetup === "Remote" ? "Remote" : selJob.location}</span><span className="flex items-center gap-1"><Briefcase size={13} /> {selJob.jobType}</span><span className="font-semibold text-[#353457]">{peso(selJob.salaryMin)} &ndash; {peso(selJob.salaryMax)}</span></p>
+                    <p className="text-xs text-[#9a99ab] mt-1">Posted {postedLabel(selJob.posted)}</p>
+                    <div className="relative flex items-center gap-2 mt-3">
+                      <span className={`text-xs font-bold px-3 py-1.5 rounded-full ${tierBadge[m.tier]}`}>{m.score}% Match</span>
+                      <button onClick={() => setShowMatchInfo(v => !v)} aria-label="How is my match calculated?" className="text-[#9a99ab] hover:text-[#353457]"><Info size={16} /></button>
+                      {showMatchInfo && <div className="absolute left-0 top-full mt-2 z-10 w-60 bg-white border border-[#cdccd5] rounded-xl shadow-xl p-3 text-xs space-y-1"><p className="font-bold mb-1">How your match is calculated</p><p className="flex justify-between"><span>Education</span><span className="font-semibold">{b.edu} / 30</span></p><p className="flex justify-between"><span>Certifications</span><span className="font-semibold">{b.cert} / 30</span></p><p className="flex justify-between"><span>Skills</span><span className="font-semibold">{b.skill} / 40</span></p></div>}
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 mt-3">{selJob.reqSkills.map(sk => <span key={sk} className="text-xs px-2.5 py-1 bg-[#cdccd5]/30 text-[#353457] rounded-full">{sk}</span>)}</div>
+
+                    <div className="flex gap-5 border-b border-[#cdccd5]/60 mt-4 text-sm">
+                      {["Overview", "About", "Requirements", "Benefits"].map(t => <button key={t} onClick={() => setSTab(t)} className={`pb-2 font-semibold border-b-2 transition-colors ${sTab === t ? "border-[#353457] text-[#353457]" : "border-transparent text-[#9a99ab] hover:text-[#686781]"}`}>{t}</button>)}
+                    </div>
+                    <div className="pt-4 text-sm space-y-4 xl:max-h-[calc(100vh-26rem)] overflow-y-auto pr-1">
+                      {sTab === "Overview" && (
+                        <>
+                          <div><h3 className="font-bold mb-1">Job Description</h3><p className="text-[#686781] leading-relaxed">{selJob.description}</p></div>
+                          <div><h3 className="font-bold mb-1">Key Responsibilities</h3><ul className="list-disc pl-5 text-[#686781] space-y-1">{selJob.resp.map(r => <li key={r}>{r}</li>)}</ul></div>
+                          <div><h3 className="font-bold mb-1">Requirements</h3><ul className="list-disc pl-5 text-[#686781] space-y-1"><li>{selJob.level === "Entry" ? "Fresh graduates are welcome" : selJob.level === "Mid" ? "2+ years of relevant experience" : "5+ years of relevant experience"}</li><li>{selJob.reqEducation.join(" or ")}</li><li>Skills in {selJob.reqSkills.join(", ")}</li></ul></div>
+                        </>
+                      )}
+                      {sTab === "About" && <div><h3 className="font-bold mb-1">About {selJob.company}</h3><p className="text-[#686781] leading-relaxed">{selJob.company} is a growing organization in {selJob.industry.toLowerCase()}, based in {selJob.location}. The team works {selJob.workSetup.toLowerCase()} and is hiring for a {selJob.jobType.toLowerCase()} {selJob.title} position.</p></div>}
+                      {sTab === "Requirements" && (
+                        <div className="space-y-3">
+                          <p><span className="font-semibold">Education:</span> {selJob.reqEducation.join(" or ")} <span className={selJob.reqEducation.includes(userProfile.education) ? "text-emerald-600" : "text-red-500"}>{selJob.reqEducation.includes(userProfile.education) ? "(you meet this)" : "(not a match)"}</span></p>
+                          {selJob.reqCerts.length > 0 && <p><span className="font-semibold">Certifications:</span> {selJob.reqCerts.map(c => <span key={c} className={`mr-2 ${userProfile.certs.includes(c) ? "text-emerald-600" : "text-red-500"}`}>{c}</span>)}</p>}
+                          <div><p className="font-semibold mb-1.5">Skills</p><div className="flex flex-wrap gap-1.5">{selJob.reqSkills.map(sk => <span key={sk} className={`text-xs px-2.5 py-1 rounded-full ${userProfile.skills.includes(sk) ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>{userProfile.skills.includes(sk) ? "\u2713 " : ""}{sk}</span>)}</div></div>
+                        </div>
+                      )}
+                      {sTab === "Benefits" && <ul className="list-disc pl-5 text-[#686781] space-y-1">{defaultBenefits.map(x => <li key={x}>{x}</li>)}</ul>}
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 mt-5">
+                      <button onClick={() => toggleSave(selJob)} className="py-3 rounded-xl border border-[#353457] text-[#353457] text-sm font-bold hover:bg-[#353457]/10 flex items-center justify-center gap-2"><Bookmark size={16} className={isSaved ? "fill-[#353457]" : ""} /> {isSaved ? "Saved" : "Save Job"}</button>
+                      <button onClick={() => likeJob(selJob)} disabled={isApplied} className={`py-3 rounded-xl text-sm font-bold text-white ${isApplied ? "bg-emerald-500 cursor-default" : "bg-[#03012d] hover:bg-[#353457]"}`}>{isApplied ? "Applied \u2713" : "Apply Now"}</button>
+                    </div>
+                  </>
+                );
+              })()}
+            </section>
+          </main>
+        )}
+
+        {nav === "Saved Jobs" && (
+          <main className="flex-1 overflow-y-auto p-4 lg:px-6 lg:pb-6">
+            <h1 className="text-3xl font-extrabold">Saved Jobs</h1>
+            <p className="text-sm text-[#686781] mt-1 mb-5">Jobs you've bookmarked to come back to.</p>
+            {saved.length === 0 ? <div className={`${card} p-10 text-center max-w-md`}><p className="font-bold">Nothing saved yet</p><p className="text-sm text-[#686781] mt-1">Tap Save on a job card to keep it here.</p></div> : (
+              <ul className="grid md:grid-cols-2 gap-4">{saved.map(j => { const m = matchOf(j); return (
+                <li key={j.id} className={`${card} p-4 flex items-center gap-4`}>
+                  <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${j.color} text-white text-xl font-extrabold flex items-center justify-center shrink-0`}>{j.company.charAt(0)}</div>
+                  <div className="flex-1 min-w-0"><p className="font-bold truncate">{j.title}</p><p className="text-xs text-[#686781]">{j.company} &bull; {j.workSetup}</p><span className={`inline-block mt-1 text-[11px] font-bold px-2 py-0.5 rounded-full ${tierBadge[m.tier]}`}>{m.score}% Match</span></div>
+                  <div className="flex flex-col gap-1.5">
+                    <button onClick={() => likeJob(j)} className="px-3 py-1.5 rounded-lg bg-[#353457] text-white text-xs font-bold hover:bg-[#03012d]">Like</button>
+                    <button onClick={() => setSaved(prev => prev.filter(x => x.id !== j.id))} className="text-xs text-[#686781] hover:text-red-500">Remove</button>
+                  </div>
+                </li>
+              ); })}</ul>
+            )}
+          </main>
+        )}
+
+        {nav === "Calendar" && (
+          <main className="flex-1 overflow-y-auto p-4 lg:px-6 lg:pb-6">
+            <h1 className="text-3xl font-extrabold">Calendar</h1>
+            <p className="text-sm text-[#686781] mt-1 mb-5">Interview invites from employers and your confirmed schedule.</p>
+            {myInvites.length === 0 ? <div className={`${card} p-10 text-center max-w-md`}><p className="font-bold">No interview invites yet</p><p className="text-sm text-[#686781] mt-1">When an employer invites you, it will show up here.</p></div> : (
+              <ul className="space-y-3 max-w-2xl">{myInvites.map(e => (
+                <li key={e.id} className={`${card} p-4`}>
+                  <p className="font-bold">Creative Studio PH</p>
+                  <p className="text-sm text-[#686781]">{e.title.replace("Interview with ", "Interview for ")} &bull; {employerCandidates.find(c => c.id === e.candidateId)?.role}</p>
+                  {e.notes && <p className="text-xs text-[#9a99ab] mt-1">{e.notes}</p>}
+                  {e.status === "Invited" && <div className="grid grid-cols-2 gap-2 mt-3 max-w-xs"><button onClick={() => respondInvite(e.id, "Declined")} className="py-2 rounded-lg border border-[#cdccd5] text-sm font-semibold">Decline</button><button onClick={() => respondInvite(e.id, "Accepted")} className="py-2 rounded-lg bg-[#03012d] text-white text-sm font-bold hover:bg-[#353457]">Accept</button></div>}
+                  {e.status === "Accepted" && <p className="text-sm font-semibold text-amber-600 mt-3">Accepted. Waiting for the employer to set a date and time.</p>}
+                  {e.status === "Declined" && <p className="text-sm font-semibold text-red-500 mt-3">You declined this invite.</p>}
+                  {e.status === "Confirmed" && <div className="mt-3 bg-emerald-50 rounded-lg p-3 text-sm"><p className="font-bold text-emerald-700">Confirmed</p><p>{fmtDate(e.date, { weekday: "long", month: "long", day: "numeric", year: "numeric" })}</p><p>{fmtTime(e.time)} &ndash; {fmtTime(addMinutes(e.time, e.duration))} &bull; {e.platform}</p></div>}
+                </li>
+              ))}</ul>
+            )}
+          </main>
+        )}
+
+        {["Messages", "Profile", "Settings"].includes(nav) && (
+          <main className="flex-1 flex items-center justify-center p-6 text-center">
+            <div className={`${card} p-10 max-w-md`}><h2 className="text-2xl font-bold mb-2">{nav}</h2><p className="text-sm text-[#686781]">This section is coming next. Head back to Home to keep swiping.</p><button onClick={() => setNav("Home")} className="mt-6 px-6 py-2.5 rounded-full bg-[#03012d] text-white text-sm font-bold hover:bg-[#353457]">Back to Home</button></div>
+          </main>
+        )}
       </div>
-      
-      <div className="p-5 flex-1 overflow-y-auto text-[#03012d]">
-        <h3 className="font-bold text-lg mb-4">{job.company}</h3>
-        <p className="text-3xl font-extrabold">{score}% Match</p>
-      </div>
-    </motion.div>
+
+      {/* MODALS */}
+      {modal && (
+        <div className="fixed inset-0 bg-[#03012d]/80 z-50 flex items-center justify-center p-4" onClick={() => setModal(null)}>
+          <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-2xl p-6 w-full max-w-lg shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button onClick={() => setModal(null)} aria-label="Close" className="absolute top-4 right-4 text-[#9a99ab] hover:text-[#03012d]"><X size={22} /></button>
+            {modal === "profile" && (
+              <>
+                <h2 className="text-2xl font-bold mb-1">Edit Profile & Resume</h2>
+                <p className="text-xs text-[#686781] mb-4">Profile completion: <span className="font-bold text-[#353457]">{completion}%</span></p>
+                <div className="space-y-4">
+                  <div><label className="block text-sm font-bold text-[#353457] mb-1">Bio</label><textarea className="w-full border border-[#cdccd5] rounded-lg p-3 text-sm focus:outline-none focus:border-[#353457]" rows={3} value={userProfile.bio} onChange={(e) => setUserProfile({ ...userProfile, bio: e.target.value })} /></div>
+                  <div>
+                    <label className="block text-sm font-bold text-[#353457] mb-1">Skills</label>
+                    <div className="flex gap-2"><input value={skillInput} onChange={(e) => setSkillInput(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addSkill(); } }} placeholder="Add a skill" className="flex-1 border border-[#cdccd5] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#353457]" /><button onClick={addSkill} className="px-4 rounded-lg bg-[#353457] text-white text-sm font-semibold">Add</button></div>
+                    <div className="flex flex-wrap gap-1.5 mt-2">{userProfile.skills.map(sk => <span key={sk} className="flex items-center gap-1 text-xs px-2.5 py-1 bg-[#353457]/10 text-[#353457] rounded-full">{sk}<button onClick={() => setUserProfile(prev => ({ ...prev, skills: prev.skills.filter(x => x !== sk) }))} aria-label={`Remove ${sk}`}><X size={12} /></button></span>)}</div>
+                  </div>
+                  <input ref={resumeRef} type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={(e) => { pickResume(e.target.files?.[0]); e.target.value = ""; }} />
+                  <button onClick={() => resumeRef.current?.click()} className="w-full border-2 border-dashed border-[#cdccd5] rounded-xl p-4 flex flex-col items-center hover:bg-gray-50">
+                    <UploadCloud size={24} className="text-[#353457] mb-2" />
+                    <span className="text-xs font-bold text-[#686781]">{userProfile.resumeUploaded ? `Uploaded: ${userProfile.resumeName}` : "UPLOAD RESUME (PDF, DOCX)"}</span>
+                    <span className="mt-1.5 bg-[#03012d] text-white text-xs px-4 py-1.5 rounded-full font-semibold">{userProfile.resumeUploaded ? "Replace file" : "Browse Files"}</span>
+                  </button>
+                </div>
+                <button onClick={() => setModal(null)} className="w-full mt-6 bg-[#03012d] text-white py-3 rounded-xl font-bold hover:bg-[#353457]">Done</button>
+              </>
+            )}
+            {modal === "prefs" && (
+              <>
+                <h2 className="text-2xl font-bold mb-4">My Job Preferences</h2>
+                <div className="space-y-3">
+                  <Field label="Job type"><select value={prefsDraft.jobType} onChange={(e) => setPrefsDraft({ ...prefsDraft, jobType: e.target.value })} className="w-full px-3 py-2.5 border border-[#cdccd5] rounded-lg text-sm focus:outline-none"><option>Full-time</option><option>Part-time</option><option>Contract</option><option>Internship</option></select></Field>
+                  <Field label="Location"><input value={prefsDraft.location} onChange={(e) => setPrefsDraft({ ...prefsDraft, location: e.target.value })} className="w-full px-3 py-2.5 border border-[#cdccd5] rounded-lg text-sm focus:outline-none" /></Field>
+                  <Field label="Preferred roles (comma separated)"><input value={prefsDraft.roles} onChange={(e) => setPrefsDraft({ ...prefsDraft, roles: e.target.value })} className="w-full px-3 py-2.5 border border-[#cdccd5] rounded-lg text-sm focus:outline-none" /></Field>
+                </div>
+                <div className="grid grid-cols-2 gap-3 mt-5"><button onClick={() => setModal(null)} className="py-3 rounded-xl border border-[#cdccd5] text-sm font-semibold">Cancel</button><button onClick={() => { setPrefs(prefsDraft); setModal(null); flash("Preferences saved"); }} className="py-3 rounded-xl bg-[#03012d] text-white text-sm font-bold hover:bg-[#353457]">Save</button></div>
+              </>
+            )}
+            {modal === "tips" && (<><h2 className="text-2xl font-bold mb-4">Quick Tips</h2><ul className="space-y-3">{quickTips.map(t => <li key={t} className="flex items-center gap-3 text-sm"><BadgeCheck size={20} className="text-[#353457] shrink-0" /> {t}</li>)}</ul></>)}
+            {modal === "activity" && (<><h2 className="text-2xl font-bold mb-4">Recent Activity</h2><ul className="space-y-3">{activity.map(a => <li key={a.id} className="flex items-center gap-3"><span className="w-10 h-10 rounded-xl bg-[#f1f1f5] flex items-center justify-center shrink-0">{activityIcon(a.kind)}</span><span className="flex-1 min-w-0"><span className="block text-sm font-bold">{a.title}</span><span className="block text-xs text-[#686781]">{a.sub}</span></span><span className="text-[11px] text-[#9a99ab]">{a.ago}</span></li>)}</ul></>)}
+          </div>
+        </div>
+      )}
+
+      {detailsJob && (() => { const m = matchOf(detailsJob); return (
+        <div className="fixed inset-0 bg-[#03012d]/80 z-50 flex items-center justify-center p-4" onClick={() => setDetailsJob(null)}>
+          <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-2xl p-6 w-full max-w-lg shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button onClick={() => setDetailsJob(null)} aria-label="Close" className="absolute top-4 right-4 text-[#9a99ab] hover:text-[#03012d]"><X size={22} /></button>
+            <p className="text-sm text-[#686781]">{detailsJob.company}</p>
+            <h2 className="text-2xl font-extrabold">{detailsJob.title}</h2>
+            <p className="text-xs text-[#686781] mt-1">{detailsJob.location} &bull; {detailsJob.jobType} &bull; {detailsJob.workSetup}</p>
+            <span className={`inline-block mt-3 text-xs font-bold px-3 py-1.5 rounded-full ${tierBadge[m.tier]}`}>{m.score}% Match</span>
+            <p className="text-sm text-[#686781] mt-3 leading-relaxed">{detailsJob.description}</p>
+            <h3 className="font-bold text-sm mt-4 mb-1.5">Requirements</h3>
+            <div className="space-y-2 text-sm">
+              <p><span className="font-semibold">Education:</span> {detailsJob.reqEducation.join(" or ")} <span className={detailsJob.reqEducation.includes(userProfile.education) ? "text-emerald-600" : "text-red-500"}>{detailsJob.reqEducation.includes(userProfile.education) ? "(you meet this)" : "(not a match)"}</span></p>
+              {detailsJob.reqCerts.length > 0 && <p><span className="font-semibold">Certifications:</span> {detailsJob.reqCerts.map(c => <span key={c} className={userProfile.certs.includes(c) ? "text-emerald-600" : "text-red-500"}>{c}{" "}</span>)}</p>}
+              <div className="flex flex-wrap gap-1.5">{detailsJob.reqSkills.map(sk => <span key={sk} className={`text-xs px-2.5 py-1 rounded-full ${userProfile.skills.includes(sk) ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>{userProfile.skills.includes(sk) ? "\u2713 " : ""}{sk}</span>)}</div>
+            </div>
+            <div className="grid grid-cols-2 gap-3 mt-5"><button onClick={() => { saveJob(detailsJob); setDetailsJob(null); }} className="py-3 rounded-xl border border-[#cdccd5] text-sm font-semibold">Save</button><button onClick={() => { const j = detailsJob; setDetailsJob(null); likeJob(j); }} className="py-3 rounded-xl bg-[#03012d] text-white text-sm font-bold hover:bg-[#353457]">Like</button></div>
+          </div>
+        </div>
+      ); })()}
+
+      {warningData.show && warningData.job && (
+        <div className="fixed inset-0 bg-[#03012d]/80 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl text-center border-t-8 border-orange-500">
+            <h2 className="text-2xl font-bold mb-2">Partial Match</h2>
+            <p className="text-sm text-[#686781]">You're missing {warningData.missing.length ? "these skills:" : "some of the requirements for this role."}</p>
+            {warningData.missing.length > 0 && <div className="flex flex-wrap justify-center gap-1.5 mt-3">{warningData.missing.map(sk => <span key={sk} className="text-xs px-2.5 py-1 bg-red-100 text-red-700 rounded-full">{sk}</span>)}</div>}
+            <div className="flex gap-4 mt-6">
+              <button onClick={() => setWarningData({ show: false, missing: [], job: null })} className="flex-1 py-3 bg-gray-100 text-[#353457] rounded-xl font-bold">Cancel</button>
+              <button onClick={() => { const j = warningData.job!; setWarningData({ show: false, missing: [], job: null }); applyTo(j); }} className="flex-1 py-3 bg-orange-500 text-white rounded-xl font-bold">Submit Anyway</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {notice && <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-[#03012d] text-white text-sm font-semibold px-5 py-3 rounded-full shadow-xl z-[70]">{notice}</div>}
+    </div>
   );
 }
