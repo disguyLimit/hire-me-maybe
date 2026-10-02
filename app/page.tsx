@@ -24,11 +24,6 @@ const jobListings = [
   { id: 6, title: "Senior Full Stack Developer", company: "Innovate Financial", location: "BGC, Taguig", jobType: "Full-time", workSetup: "Hybrid", level: "Senior", reqEducation: ["BS Computer Science"], reqCerts: ["AWS Solutions Architect", "Certified Kubernetes Administrator"], reqSkills: ["React", "Node.js", "Python", "Docker", "AWS"], description: "Lead the design and delivery of secure financial web applications.", color: "from-[#03012d] to-purple-400" },
 ];
 
-const mockApplicants = [
-  { id: 101, name: "Maria Santos", education: "BS Computer Science", skills: ["React", "JavaScript", "Tailwind CSS", "Node.js"], score: 92 },
-  { id: 102, name: "David Chen", education: "BS Information Technology", skills: ["React", "JavaScript"], score: 78 },
-];
-
 const calculateMatch = (user: typeof initialUserProfile, job: typeof jobListings[0]) => {
   let score = 0;
   const missingSkills: string[] = [];
@@ -83,12 +78,21 @@ const LOGO_SIZES = {
   lg: 'h-40 sm:h-56',
 } as const;
 
+function HireMeMaybeLogo({ audience }: { audience: "Employers" | "Job Seekers" }) {
+  return (
+    <div className="mb-8 px-2">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/hirememaybe-logo.png" alt="HireMeMaybe" className="w-full max-w-[200px] h-auto rounded-xl object-contain bg-white" />
+      <p className="mt-1 text-center text-[9px] font-semibold tracking-[0.18em] uppercase text-[#9a99ab]">By Kairos · For {audience}</p>
+    </div>
+  );
+}
 function KairosLogo({ size = 'lg' }: { size?: keyof typeof LOGO_SIZES; priority?: boolean }) {
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
       src="/logo.jpg"
-      alt="KAIROS"
+      alt="HireMeMaybe"
       draggable={false}
       className={`${LOGO_SIZES[size]} w-auto object-contain mix-blend-multiply select-none`}
     />
@@ -121,7 +125,7 @@ function LandingPage({ onProceed }: { onProceed: (role: 'seeker' | 'employer') =
           <KairosLogo size="lg" priority />
         </div>
         
-        <h1 className="text-4xl font-extrabold text-slate-900 mb-2 tracking-tight">Welcome to KAIROS.</h1>
+        <h1 className="text-4xl font-extrabold text-slate-900 mb-2 tracking-tight">Welcome to HireMeMaybe.</h1>
         <p className="text-slate-500 text-lg mb-10 font-medium">Please select your account type:</p>
 
         {/* Selection Cards */}
@@ -140,7 +144,7 @@ function LandingPage({ onProceed }: { onProceed: (role: 'seeker' | 'employer') =
               <Compass size={36} className="text-purple-400 absolute -top-3 -left-5 opacity-50" />
               <Handshake size={52} className="relative z-10" />
             </div>
-            <h3 className="text-sm font-extrabold text-slate-900 tracking-wider mb-6">I'M A JOB SEEKER</h3>
+            <h3 className="text-sm font-extrabold text-slate-900 tracking-wider mb-6">I&apos;M A JOB SEEKER</h3>
             
             <div className="h-10 w-full flex items-center justify-center">
               {selectedRole === 'seeker' ? (
@@ -169,7 +173,7 @@ function LandingPage({ onProceed }: { onProceed: (role: 'seeker' | 'employer') =
               <Building2 size={52} className="relative z-10" />
               <Settings size={24} className="text-purple-400 absolute -bottom-1 -right-3 opacity-70" />
             </div>
-            <h3 className="text-sm font-extrabold text-slate-900 tracking-wider mb-6">I'M AN EMPLOYER</h3>
+            <h3 className="text-sm font-extrabold text-slate-900 tracking-wider mb-6">I&apos;M AN EMPLOYER</h3>
             
             <div className="h-10 w-full flex items-center justify-center">
               {selectedRole === 'employer' ? (
@@ -569,7 +573,6 @@ const notifItems = [
   { k: "jobUpdates", title: "Job Posting Updates", desc: "Updates on job posting status (approved, expired, etc.)", icon: Bell },
   { k: "product", title: "Product Updates", desc: "Latest features, announcements, and tips", icon: Lightbulb },
 ];
-const settingsSections = ["Account Settings", "Notifications", "Privacy & Security", "Hiring Preferences", "Subscription & Billing", "Integrations", "Help & Support"];
 
 function EventChip({ e, selected, onClick }: { e: CalEvent; selected: boolean; onClick: () => void }) {
   return (
@@ -721,7 +724,6 @@ function EmployerView({ onBack, events, setEvents }: { onBack: () => void; event
   const [acctErr, setAcctErr] = useState<Record<string, boolean>>({});
   const [notif, setNotif] = useState<Record<string, boolean>>({ matches: true, messages: true, applications: true, shortlists: true, interviews: true, jobUpdates: true, product: false });
   const [twoFA, setTwoFA] = useState(true);
-  const [publicProfile, setPublicProfile] = useState(true);
   const [connected, setConnected] = useState<Record<string, boolean>>({ google: true, linkedin: true, github: false });
   const [emailEdit, setEmailEdit] = useState<string | null>(null);
   const [pwModal, setPwModal] = useState(false);
@@ -770,7 +772,7 @@ function EmployerView({ onBack, events, setEvents }: { onBack: () => void; event
   const [blocked, setBlocked] = useState([{ id: 1, name: "Jordan Reyes", role: "Sales Associate" }, { id: 2, name: "Chris Tan", role: "Customer Support" }]);
   const [cookiePrefs, setCookiePrefs] = useState({ analytics: true, marketing: false });
   const [dataRequested, setDataRequested] = useState(false);
-  useEffect(() => { if (activeNav === "Settings") setAcctDraft(company); }, [activeNav]);
+
   useEffect(() => {
     const el = chatScrollRef.current;
     if (el) el.scrollTop = el.scrollHeight;
@@ -1031,7 +1033,7 @@ function EmployerView({ onBack, events, setEvents }: { onBack: () => void; event
     flash("Payment method added");
   };
   const downloadInvoice = (inv: Invoice) => {
-    const text = [`KAIROS Invoice ${inv.id}`, `Date: ${inv.date}`, `Billed to: ${company.name}`, `Description: ${inv.desc}`, `Amount: ${peso(inv.amount)}`, `Paid with: ${inv.card}`, `Status: ${inv.status}`].join("\n");
+    const text = [`HireMeMaybe Invoice ${inv.id}`, `Date: ${inv.date}`, `Billed to: ${company.name}`, `Description: ${inv.desc}`, `Amount: ${peso(inv.amount)}`, `Paid with: ${inv.card}`, `Status: ${inv.status}`].join("\n");
     const url = URL.createObjectURL(new Blob([text], { type: "text/plain" }));
     const a = document.createElement("a");
     a.href = url;
@@ -1236,16 +1238,13 @@ function EmployerView({ onBack, events, setEvents }: { onBack: () => void; event
     <div className="min-h-screen lg:h-screen flex bg-gradient-to-br from-[#03012d] via-[#1b1a45] to-[#353457] text-white">
       {/* SIDEBAR */}
       <aside className="hidden lg:flex w-64 shrink-0 flex-col p-5 bg-white/5 border-r border-white/10">
-        <div className="mb-8 px-2">
-          <p className="text-2xl font-extrabold tracking-tight">KAIROS</p>
-          <p className="text-xs text-[#9a99ab]">For Employers</p>
-        </div>
+        <HireMeMaybeLogo audience="Employers" />
         <nav className="flex flex-col gap-1">
           {NAV_ITEMS.map(item => {
             const Icon = item.icon;
             const active = activeNav === item.label;
             return (
-              <button key={item.label} onClick={() => setActiveNav(item.label)} className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${active ? "bg-white/15 text-white" : "text-[#cdccd5] hover:bg-white/10"}`}>
+              <button key={item.label} onClick={() => { if (item.label === "Settings") setAcctDraft(company); setActiveNav(item.label); }} className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${active ? "bg-white/15 text-white" : "text-[#cdccd5] hover:bg-white/10"}`}>
                 <Icon size={18} />
                 <span className="flex-1 text-left">{item.label}</span>
                 {item.label === "Messages" && totalUnread > 0 && <span className="bg-[#686781] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">{totalUnread}</span>}
@@ -1253,7 +1252,7 @@ function EmployerView({ onBack, events, setEvents }: { onBack: () => void; event
             );
           })}
         </nav>
-        <div role="button" tabIndex={0} onClick={() => { setSection("Subscription & Billing"); setActiveNav("Settings"); }} className={`${glass} mt-auto p-4 cursor-pointer hover:bg-white/15 transition-colors`}>
+        <div role="button" tabIndex={0} onClick={() => { setAcctDraft(company); setSection("Subscription & Billing"); setActiveNav("Settings"); }} className={`${glass} mt-auto p-4 cursor-pointer hover:bg-white/15 transition-colors`}>
           <Crown size={22} className="text-amber-300 mb-2" />
           <p className="font-bold text-sm">Upgrade to Pro Employer</p>
           <p className="text-xs text-[#cdccd5] mt-1">Get more access, featured listings and advanced filters.</p>
@@ -1430,7 +1429,7 @@ function EmployerView({ onBack, events, setEvents }: { onBack: () => void; event
 
                     <div className="border-t border-[#cdccd5]/60 pt-5">
                       <h3 className="font-bold flex items-center gap-2"><Eye size={18} /> Privacy Preferences</h3>
-                      <p className="text-xs text-[#686781] mb-2">Control what information you share and how you're contacted.</p>
+                      <p className="text-xs text-[#686781] mb-2">Control what information you share and how you&apos;re contacted.</p>
                       <div className="divide-y divide-[#cdccd5]/50">
                         <div className="flex items-center gap-3 py-3"><MessageCircle size={20} className="text-[#353457] shrink-0" /><div className="flex-1"><p className="text-sm font-semibold">Allow messages from candidates</p><p className="text-xs text-[#686781]">Let candidates message you about job postings.</p></div><Toggle on={allowMessages} onChange={setAllowMessages} label="Allow messages from candidates" /></div>
                         <div className="flex items-center gap-3 py-3"><Users size={20} className="text-[#353457] shrink-0" /><div className="flex-1"><p className="text-sm font-semibold">Show company team members</p><p className="text-xs text-[#686781]">Display team members on your company profile.</p></div><Toggle on={showTeam} onChange={setShowTeam} label="Show company team members" /></div>
@@ -1467,7 +1466,7 @@ function EmployerView({ onBack, events, setEvents }: { onBack: () => void; event
                         </div>
                         <div>
                           <h3 className="font-bold text-sm">Hiring Priority</h3>
-                          <p className="text-xs text-[#686781] mb-2">What's most important to you when reviewing candidates?</p>
+                          <p className="text-xs text-[#686781] mb-2">What&apos;s most important to you when reviewing candidates?</p>
                           <div className="flex flex-wrap gap-2">
                             {["Skills Match", "Experience", "Cultural Fit", "Availability"].map(o => (
                               <button key={o} onClick={() => setPrefs(prev => ({ ...prev, priority: o }))} aria-pressed={prefs.priority === o} className={`px-4 py-2 rounded-xl text-xs font-semibold border transition-colors ${prefs.priority === o ? "bg-[#353457] text-white border-[#353457]" : "border-[#cdccd5] text-[#353457] hover:bg-gray-50"}`}>{prefs.priority === o ? "✓ " : ""}{o}</button>
@@ -1522,7 +1521,7 @@ function EmployerView({ onBack, events, setEvents }: { onBack: () => void; event
                     {hireTab === "Education & Certifications" && (
                       <div className="space-y-5">
                         <Field label="Minimum education">
-                          <select value={prefs.education} onChange={(e) => setPrefs(prev => ({ ...prev, education: e.target.value }))} className="w-full sm:w-64 px-3 py-2.5 bg-[#f8f9fa] border border-[#cdccd5] rounded-lg text-sm focus:outline-none"><option>Any</option><option>High school</option><option>Bachelor's degree</option><option>Master's degree</option></select>
+                          <select value={prefs.education} onChange={(e) => setPrefs(prev => ({ ...prev, education: e.target.value }))} className="w-full sm:w-64 px-3 py-2.5 bg-[#f8f9fa] border border-[#cdccd5] rounded-lg text-sm focus:outline-none"><option>Any</option><option>High school</option><option>Bachelor&apos;s degree</option><option>Master&apos;s degree</option></select>
                         </Field>
                         <div>
                           <h3 className="font-bold text-sm">Preferred Certifications</h3>
@@ -1608,7 +1607,7 @@ function EmployerView({ onBack, events, setEvents }: { onBack: () => void; event
                         {usageBar("Candidate Views (This Month)", viewsUsed, limits.viewLimit)}
                       </div>
                       {subPlan === "Free" && activeJobs >= limits.jobLimit && (
-                        <p className="text-xs text-red-600 font-medium mt-3">You've reached your plan limit of {limits.jobLimit} active job postings. Upgrade to Pro for unlimited postings.</p>
+                        <p className="text-xs text-red-600 font-medium mt-3">You&apos;ve reached your plan limit of {limits.jobLimit} active job postings. Upgrade to Pro for unlimited postings.</p>
                       )}
                     </div>
                   </div>
@@ -1625,7 +1624,7 @@ function EmployerView({ onBack, events, setEvents }: { onBack: () => void; event
                   <div className="space-y-6">
                     <div className="border-b border-[#cdccd5]/60 pb-4">
                       <h2 className="text-xl font-extrabold">Help & Support</h2>
-                      <p className="text-xs text-[#686781] mt-1">Get the help you need. We're here for you.</p>
+                      <p className="text-xs text-[#686781] mt-1">Get the help you need. We&apos;re here for you.</p>
                     </div>
 
                     <div className="rounded-2xl bg-gradient-to-r from-[#353457]/10 to-purple-100 p-5">
@@ -1671,7 +1670,7 @@ function EmployerView({ onBack, events, setEvents }: { onBack: () => void; event
 
                     <div>
                       <h3 className="font-bold">Additional Resources</h3>
-                      <p className="text-xs text-[#686781] mb-3">Explore more ways to get the most out of KAIROS.</p>
+                      <p className="text-xs text-[#686781] mb-3">Explore more ways to get the most out of HireMeMaybe.</p>
                       <div className="grid sm:grid-cols-2 gap-3">
                         {([["User Guide", "Step-by-step tutorials for employers", () => { setHelpQuery(""); setHelpTopic("All Guides"); }, Briefcase], ["Video Tutorials", "Watch quick guides and demos", () => flash("Video tutorials are coming soon"), CalendarDays], ["Community Forum", "Get tips from other employers", () => flash("The community forum is coming soon"), Users], ["FAQs", "Browse frequently asked questions", () => { setFaqOpen(0); setHelpModal({ kind: "faq" }); }, MessageCircle]] as const).map(([name, desc, onClick, Icon]) => (
                           <button key={name} onClick={onClick} className="flex items-center gap-3 border border-[#cdccd5]/60 rounded-xl p-3 text-left hover:bg-gray-50">
@@ -1793,7 +1792,7 @@ function EmployerView({ onBack, events, setEvents }: { onBack: () => void; event
                   <>
                     <section className="bg-white rounded-2xl p-4 text-[#03012d] shadow-2xl">
                       <h3 className="font-extrabold flex items-center gap-2"><Lock size={18} /> Data & Privacy</h3>
-                      <p className="text-xs text-[#686781] mb-1">Manage how your data is used on KAIROS.</p>
+                      <p className="text-xs text-[#686781] mb-1">Manage how your data is used on HireMeMaybe.</p>
                       <div className="divide-y divide-[#cdccd5]/50">
                         {privRow(FileText, "Data Usage", "Manage how we use your data", () => setPrivModal("usage"))}
                         {privRow(Download, dataRequested ? "Data request sent" : "Download My Data", dataRequested ? `We'll email a download link to ${company.email}` : "Request a copy of your company data", () => { if (!dataRequested) { setDataRequested(true); flash("Data request received"); } })}
@@ -1804,7 +1803,7 @@ function EmployerView({ onBack, events, setEvents }: { onBack: () => void; event
 
                     <section className="bg-white rounded-2xl p-4 text-[#03012d] shadow-2xl">
                       <h3 className="font-extrabold flex items-center gap-2"><Ban size={18} /> Blocked Users</h3>
-                      <p className="text-xs text-[#686781] mb-1">Manage users you've blocked.</p>
+                      <p className="text-xs text-[#686781] mb-1">Manage users you&apos;ve blocked.</p>
                       {privRow(Users, "View Blocked Users", blocked.length ? `${blocked.length} blocked. Unblock or manage candidates.` : "No blocked candidates.", () => setPrivModal("blocked"))}
                     </section>
 
@@ -1827,7 +1826,7 @@ function EmployerView({ onBack, events, setEvents }: { onBack: () => void; event
                   <>
                     <section className="bg-white rounded-2xl p-4 text-[#03012d] shadow-2xl">
                       <h3 className="font-extrabold flex items-center gap-2"><Bell size={18} /> Notification Preview</h3>
-                      <p className="text-xs text-[#686781] mb-3">Here's how your notifications will look.</p>
+                      <p className="text-xs text-[#686781] mb-3">Here&apos;s how your notifications will look.</p>
                       {!channels.inapp ? <p className="text-xs text-[#686781] py-4 text-center">In-app notifications are off.</p>
                         : previewItems.length === 0 ? <p className="text-xs text-[#686781] py-4 text-center">All notification types are off.</p>
                         : (
@@ -1877,7 +1876,7 @@ function EmployerView({ onBack, events, setEvents }: { onBack: () => void; event
                       <select value={frequency} onChange={(e) => setFrequency(e.target.value)} aria-label="Notification frequency" className="w-full px-3 py-2.5 bg-[#f8f9fa] border border-[#cdccd5] rounded-lg text-sm focus:outline-none">
                         <option>Immediate (Real-time)</option><option>Hourly digest</option><option>Daily digest</option><option>Weekly digest</option>
                       </select>
-                      {!channels.email && <p className="text-xs text-amber-600 mt-2">Email notifications are off, so digests won't be sent.</p>}
+                      {!channels.email && <p className="text-xs text-amber-600 mt-2">Email notifications are off, so digests won&apos;t be sent.</p>}
                     </section>
                   </>
                 ) : (
@@ -2078,9 +2077,9 @@ function EmployerView({ onBack, events, setEvents }: { onBack: () => void; event
                 {profTab === "Subscription" && (
                   <section className="bg-white rounded-2xl p-5 text-[#03012d] shadow-2xl">
                     <h3 className="font-extrabold">Subscription</h3>
-                    <p className="text-sm text-[#686781] mt-1">You're on the <span className="font-bold text-[#353457]">{subPlan} Employer</span> plan.</p>
+                    <p className="text-sm text-[#686781] mt-1">You&apos;re on the <span className="font-bold text-[#353457]">{subPlan} Employer</span> plan.</p>
                     <ul className="text-sm text-[#686781] list-disc pl-5 mt-3 space-y-1"><li>Verified company badge</li><li>More active job postings</li><li>Advanced filters and analytics</li><li>Priority visibility to candidates</li></ul>
-                    <button onClick={() => { setSection("Subscription & Billing"); setActiveNav("Settings"); }} className="mt-4 px-6 py-3 rounded-xl bg-[#353457] text-white text-sm font-bold hover:bg-[#03012d]">Upgrade to Pro Employer</button>
+                    <button onClick={() => { setAcctDraft(company); setSection("Subscription & Billing"); setActiveNav("Settings"); }} className="mt-4 px-6 py-3 rounded-xl bg-[#353457] text-white text-sm font-bold hover:bg-[#03012d]">Upgrade to Pro Employer</button>
                   </section>
                 )}
               </div>
@@ -2553,7 +2552,7 @@ function EmployerView({ onBack, events, setEvents }: { onBack: () => void; event
               {/* POST A NEW JOB */}
               <section className="bg-white rounded-2xl p-5 text-[#03012d] shadow-2xl">
                 <h2 className="text-xl font-extrabold">Post a New Job</h2>
-                <p className="text-xs text-[#686781] mt-1 mb-4">Fill in the details to create a job posting. The more details you provide, the better matches you'll get.</p>
+                <p className="text-xs text-[#686781] mt-1 mb-4">Fill in the details to create a job posting. The more details you provide, the better matches you&apos;ll get.</p>
 
                 <h3 className="text-sm font-bold mb-2">Basic Information</h3>
                 <div className="grid sm:grid-cols-2 gap-3">
@@ -3029,12 +3028,12 @@ function EmployerView({ onBack, events, setEvents }: { onBack: () => void; event
             <h2 className="text-xl font-extrabold mb-2">Manage Plan</h2>
             {subPlan === "Free" ? (
               <>
-                <p className="text-sm text-[#686781] mb-4">You're on the Free plan. Pick Pro or Business to get unlimited job postings and candidate views.</p>
+                <p className="text-sm text-[#686781] mb-4">You&apos;re on the Free plan. Pick Pro or Business to get unlimited job postings and candidate views.</p>
                 <button onClick={() => setManageOpen(false)} className="w-full py-3 rounded-xl bg-[#353457] text-white text-sm font-bold">Choose a plan</button>
               </>
             ) : (
               <>
-                <p className="text-sm text-[#686781] mb-1">You're on the <span className="font-bold">{subPlan}</span> plan, billed {subCycle.toLowerCase()}.</p>
+                <p className="text-sm text-[#686781] mb-1">You&apos;re on the <span className="font-bold">{subPlan}</span> plan, billed {subCycle.toLowerCase()}.</p>
                 <p className="text-sm text-[#686781] mb-4">Next billing date: {nextBilling || "\u2014"}</p>
                 <button onClick={cancelPlan} className="w-full py-3 rounded-xl border border-red-400 text-red-600 text-sm font-semibold hover:bg-red-50">Cancel subscription</button>
                 <button onClick={() => setManageOpen(false)} className="w-full mt-2 py-3 rounded-xl border border-[#cdccd5] text-sm font-semibold">Keep my plan</button>
@@ -3067,8 +3066,8 @@ function EmployerView({ onBack, events, setEvents }: { onBack: () => void; event
             {privModal === "blocked" && (
               <>
                 <h2 className="text-xl font-extrabold mb-1">Blocked Users</h2>
-                <p className="text-xs text-[#686781] mb-4">Blocked candidates can't see your jobs or message you.</p>
-                {blocked.length === 0 && <p className="text-sm text-[#686781] text-center py-6">You haven't blocked anyone.</p>}
+                <p className="text-xs text-[#686781] mb-4">Blocked candidates can&apos;t see your jobs or message you.</p>
+                {blocked.length === 0 && <p className="text-sm text-[#686781] text-center py-6">You haven&apos;t blocked anyone.</p>}
                 <ul className="space-y-3">
                   {blocked.map(b => (
                     <li key={b.id} className="flex items-center gap-3 border border-[#cdccd5]/60 rounded-xl p-3">
@@ -3096,7 +3095,7 @@ function EmployerView({ onBack, events, setEvents }: { onBack: () => void; event
               <>
                 <h2 className="text-xl font-extrabold mb-3">Data Usage</h2>
                 <div className="space-y-3 text-sm text-[#686781] leading-relaxed">
-                  <p>KAIROS uses your company details, job postings and hiring activity to match you with candidates and to show your listings to job seekers.</p>
+                  <p>HireMeMaybe uses your company details, job postings and hiring activity to match you with candidates and to show your listings to job seekers.</p>
                   <p>Candidate information you view stays tied to the roles you hire for, and your messages are only visible to you and the candidate.</p>
                   <p>You can request a copy of your data or delete your account at any time from this page.</p>
                 </div>
@@ -3251,7 +3250,6 @@ const searchExtra: Record<number, { salaryMin: number; salaryMax: number; indust
   12: { salaryMin: 90000, salaryMax: 130000, industry: "Technology", posted: 7, resp: ["Find and win new partnerships", "Negotiate and close agreements", "Report on pipeline and revenue"] },
 };
 const searchCatalog = [...jobListings, ...moreJobs].map(j => ({ ...j, ...searchExtra[j.id] }));
-type SearchJob = typeof searchCatalog[number];
 const searchIndustries = Array.from(new Set(searchCatalog.map(j => j.industry))).sort();
 const defaultBenefits = ["HMO coverage from day one", "13th month pay", "Paid time off", "Learning and development budget"];
 const searchFilterDefaults = { types: [] as string[], setups: [] as string[], location: "", salaryMin: 10000, salaryMax: 150000, levels: [] as string[], industry: "", skills: [] as string[] };
@@ -3306,15 +3304,109 @@ function SeekerCard({ job, score, tier, canLike, onPass, onLike, onDetails }: { 
   );
 }
 
+type SeekerChatMessage = { id: number; from: "employer" | "seeker"; text: string; time: string };
+type SeekerConversation = { id: number; company: string; team: string; role: string; category: "Recruiters" | "Employers" | "System"; color: string; unread: number; preview: string; time: string; messages: SeekerChatMessage[] };
+
+const seekerConversationSeed: SeekerConversation[] = [
+  { id: 1, company: "Google", team: "Recruitment Team", role: "UI/UX Designer", category: "Recruiters", color: "from-blue-500 to-emerald-400", unread: 2, preview: "Hi Juan! We’d like to schedule an initial interview.", time: "10:24 AM", messages: [
+    { id: 1, from: "employer", text: "Hi Juan!\nWe came across your profile and were impressed with your background and skills. We’d like to schedule an initial interview for the UI/UX Designer position. Are you available this week?", time: "10:24 AM" },
+    { id: 2, from: "seeker", text: "Hi! Thank you for considering my application. Yes, I’m available this week. Please let me know the possible schedule.", time: "10:24 AM" },
+    { id: 3, from: "employer", text: "Great! Here are a few available times for a 30-minute initial interview:\n\n• Sep 29, 2026 · 10:00 AM\n• Sep 29, 2026 · 2:00 PM\n• Sep 30, 2026 · 11:00 AM\n\nPlease let me know which works for you.", time: "10:32 AM" },
+    { id: 4, from: "seeker", text: "I’ll go with Sep 29, 2026 · 2:00 PM. Thank you!", time: "10:34 AM" },
+  ] },
+  { id: 2, company: "Figma", team: "Talent Acquisition", role: "Product Designer", category: "Recruiters", color: "from-rose-500 to-orange-400", unread: 1, preview: "Thanks for your application! We’d love to learn more.", time: "8:15 AM", messages: [{ id: 1, from: "employer", text: "Thanks for your application! We’d love to learn more about your product design experience. Could you share a portfolio link?", time: "8:15 AM" }] },
+  { id: 3, company: "Notion", team: "HR Team", role: "Product Designer", category: "Employers", color: "from-slate-700 to-slate-400", unread: 0, preview: "Your application has been viewed.", time: "Yesterday", messages: [{ id: 1, from: "employer", text: "Your application has been viewed by our hiring team. We’ll be in touch with next steps soon.", time: "Yesterday" }] },
+  { id: 4, company: "Airbnb", team: "Recruiter", role: "UX Researcher", category: "Recruiters", color: "from-red-500 to-rose-300", unread: 0, preview: "We’re impressed with your profile.", time: "Sep 28", messages: [{ id: 1, from: "employer", text: "We’re impressed with your profile and would like to talk about our UX Researcher opening.", time: "Sep 28" }] },
+  { id: 5, company: "Microsoft", team: "Hiring Team", role: "Business Analyst", category: "Employers", color: "from-sky-500 to-blue-300", unread: 0, preview: "You have a new job match!", time: "Sep 27", messages: [{ id: 1, from: "employer", text: "You have a new job match! Your experience looks relevant to our Business Analyst opening.", time: "Sep 27" }] },
+  { id: 6, company: "Canva", team: "Recruitment Team", role: "UI/UX Designer", category: "Recruiters", color: "from-cyan-500 to-purple-400", unread: 0, preview: "Hi Juan! Are you available for a quick chat?", time: "Sep 26", messages: [{ id: 1, from: "employer", text: "Hi Juan! Are you available for a quick chat about the role?", time: "Sep 26" }] },
+  { id: 7, company: "LinkedIn", team: "Career Opportunities", role: "Multiple roles", category: "System", color: "from-blue-700 to-sky-400", unread: 0, preview: "New job recommendations for you.", time: "Sep 25", messages: [{ id: 1, from: "employer", text: "We found new job recommendations based on your profile and skills.", time: "Sep 25" }] },
+];
+
+function SeekerMessagesPage({ conversations, setConversations }: { conversations: SeekerConversation[]; setConversations: React.Dispatch<React.SetStateAction<SeekerConversation[]>> }) {
+  const [activeId, setActiveId] = useState(1);
+  const [filter, setFilter] = useState<"All" | "Recruiters" | "Employers" | "System">("All");
+  const [query, setQuery] = useState("");
+  const [draft, setDraft] = useState("");
+  const [mobileChatOpen, setMobileChatOpen] = useState(false);
+  const [notice, setNotice] = useState("");
+  const card = "bg-white rounded-2xl shadow-lg border border-[#cdccd5]/50";
+  const flash = (message: string) => { setNotice(message); window.setTimeout(() => setNotice(""), 2600); };
+  const active = conversations.find(c => c.id === activeId) ?? null;
+  const visible = conversations.filter(c => (filter === "All" || c.category === filter) && (!query.trim() || [c.company, c.team, c.role, c.preview].join(" ").toLowerCase().includes(query.trim().toLowerCase())));
+  const openConversation = (id: number) => {
+    setActiveId(id);
+    setMobileChatOpen(true);
+    setConversations(prev => prev.map(c => c.id === id ? { ...c, unread: 0 } : c));
+  };
+  const sendMessage = () => {
+    const text = draft.trim();
+    if (!text || !active) return;
+    const time = new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+    setConversations(prev => prev.map(c => c.id === active.id ? { ...c, preview: text, time, messages: [...c.messages, { id: Date.now(), from: "seeker", text, time }] } : c));
+    setDraft("");
+  };
+
+  return (
+    <main className="flex-1 min-h-0 p-4 lg:px-6 lg:pb-6">
+      <div className="h-full min-h-[520px] grid md:grid-cols-[290px_minmax(0,1fr)] gap-4">
+        <section className={`${mobileChatOpen ? "hidden md:flex" : "flex"} ${card} min-h-0 flex-col overflow-hidden`}>
+          <div className="p-4 border-b border-[#cdccd5]/60">
+            <div className="flex items-start justify-between"><div><h1 className="text-xl font-extrabold">Messages</h1><p className="text-xs text-[#686781] mt-0.5">Stay connected with recruiters and employers.</p></div><button aria-label="New message" onClick={() => flash("You can message employers after matching with a role.")} className="text-[#686781] hover:text-[#353457]"><Send size={18} /></button></div>
+            <div className="flex items-center justify-between gap-1 mt-4 border-b border-[#cdccd5]/60">
+              {(["All", "Recruiters", "Employers", "System"] as const).map(t => <button key={t} onClick={() => setFilter(t)} className={`px-2 pb-2 text-[11px] font-semibold ${filter === t ? "border-b-2 border-[#353457] text-[#353457]" : "text-[#686781]"}`}>{t}</button>)}
+            </div>
+            <div className="relative mt-3"><Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9a99ab]" /><input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search messages..." className="w-full bg-[#f8f9fa] border border-[#cdccd5] rounded-xl py-2.5 pl-9 pr-3 text-xs focus:outline-none focus:border-[#353457]" /></div>
+          </div>
+          <ul className="flex-1 min-h-0 overflow-y-auto divide-y divide-[#cdccd5]/40">
+            {visible.map(c => <li key={c.id}><button onClick={() => openConversation(c.id)} className={`w-full flex items-center gap-3 p-3 text-left transition-colors ${activeId === c.id ? "bg-[#353457]/10" : "hover:bg-slate-50"}`}>
+              <span className={`w-11 h-11 rounded-xl bg-gradient-to-br ${c.color} text-white font-extrabold flex items-center justify-center shrink-0`}>{c.company.charAt(0)}</span>
+              <span className="min-w-0 flex-1"><span className="flex items-center justify-between gap-2"><span className="font-bold text-sm truncate">{c.company}</span><span className="text-[10px] text-[#9a99ab] shrink-0">{c.time}</span></span><span className="block text-[11px] text-[#686781]">{c.team}</span><span className="block text-xs text-[#9a99ab] truncate mt-0.5">{c.preview}</span></span>
+              {c.unread > 0 && <span className="w-5 h-5 rounded-full bg-indigo-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0">{c.unread}</span>}
+            </button></li>)}
+            {visible.length === 0 && <li className="p-6 text-center text-sm text-[#686781]">No conversations found.</li>}
+          </ul>
+        </section>
+
+        <section className={`${mobileChatOpen ? "flex" : "hidden md:flex"} ${card} min-h-0 flex-col overflow-hidden`}>
+          {!active ? <div className="flex-1 flex items-center justify-center text-sm text-[#686781]">Select a conversation to start messaging.</div> : <>
+            <header className="flex items-center gap-3 p-4 border-b border-[#cdccd5]/60">
+              <button onClick={() => setMobileChatOpen(false)} aria-label="Back to conversations" className="md:hidden text-[#686781]"><ChevronLeft size={20} /></button>
+              <span className={`w-11 h-11 rounded-xl bg-gradient-to-br ${active.color} text-white font-extrabold flex items-center justify-center shrink-0`}>{active.company.charAt(0)}</span>
+              <div className="flex-1 min-w-0"><h2 className="font-extrabold truncate">{active.company}</h2><p className="text-xs text-[#686781]">{active.team} · {active.role}</p></div>
+              <button onClick={() => flash("Audio calls will be available soon.")} aria-label="Call employer" className="w-9 h-9 rounded-xl border border-[#cdccd5] text-[#686781]"><MessageCircle size={16} /></button>
+              <button onClick={() => flash("Conversation options")} aria-label="More options" className="w-9 h-9 rounded-xl border border-[#cdccd5] text-[#686781]"><ChevronDown size={16} /></button>
+            </header>
+            <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4">
+              <p className="text-center text-[10px] text-[#9a99ab]">Today, Oct 2, 2026</p>
+              {active.messages.map(m => <div key={m.id} className={`flex ${m.from === "seeker" ? "justify-end" : "justify-start"}`}>
+                <div className={`max-w-[82%] rounded-2xl px-4 py-3 text-sm whitespace-pre-line ${m.from === "seeker" ? "bg-[#353457] text-white rounded-br-md" : "bg-[#f1f2f8] text-[#03012d] rounded-bl-md"}`}><p>{m.text}</p><span className={`block text-[10px] mt-1.5 ${m.from === "seeker" ? "text-white/70 text-right" : "text-[#9a99ab]"}`}>{m.time}</span></div>
+              </div>)}
+            </div>
+            <div className="p-3 border-t border-[#cdccd5]/60">
+              <div className="flex items-center gap-2 bg-white border border-[#cdccd5] rounded-full p-1.5 pl-4 focus-within:border-[#353457]">
+                <input value={draft} onChange={e => setDraft(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }} placeholder="Type a message..." className="flex-1 min-w-0 bg-transparent text-sm outline-none" aria-label="Type a message" />
+                <button onClick={sendMessage} disabled={!draft.trim()} aria-label="Send message" className="w-9 h-9 rounded-full bg-indigo-600 text-white flex items-center justify-center disabled:opacity-40"><Send size={16} /></button>
+              </div>
+              <p className="text-[10px] text-[#9a99ab] text-center mt-2">Messaging is a prototype. Your messages stay in this session.</p>
+            </div>
+          </>}
+        </section>
+      </div>
+      {notice && <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-[#03012d] text-white text-sm font-semibold px-5 py-3 rounded-full shadow-xl z-[70]">{notice}</div>}
+    </main>
+  );
+}
+
 function JobSeekerView({ onBack, events, setEvents }: { onBack: () => void; events: CalEvent[]; setEvents: React.Dispatch<React.SetStateAction<CalEvent[]>> }) {
   const [nav, setNav] = useState("Home");
+  const [seekerConversations, setSeekerConversations] = useState(seekerConversationSeed);
   const [userProfile, setUserProfile] = useState(initialUserProfile);
   const [jobs, setJobs] = useState(jobListings);
   const [tab, setTab] = useState("For You");
   const [searchQuery, setSearchQuery] = useState("");
   const [minMatch, setMinMatch] = useState(0);
   const [showFilter, setShowFilter] = useState(false);
-  const [saved, setSaved] = useState<SeekerJob[]>([]);
+  const [saved, setSaved] = useState<SeekerJob[]>([jobListings[0], jobListings[1], jobListings[2], moreJobs[2], jobListings[5]]);
   const [activity, setActivity] = useState(activitySeed);
   const [prefs, setPrefs] = useState({ jobType: "Full-time", location: "Calamba, Laguna + 20 km", roles: "Marketing, Data Entry, Admin, Customer Support" });
   const [prefsDraft, setPrefsDraft] = useState(prefs);
@@ -3324,6 +3416,23 @@ function JobSeekerView({ onBack, events, setEvents }: { onBack: () => void; even
   const [notice, setNotice] = useState("");
   const [skillInput, setSkillInput] = useState("");
   const resumeRef = useRef<HTMLInputElement>(null);
+  const [savedView, setSavedView] = useState("All Saved");
+  const [savedQuery, setSavedQuery] = useState("");
+  const [selectedSavedId, setSelectedSavedId] = useState<number | null>(1);
+  const [savedNotes, setSavedNotes] = useState<Record<number, string>>({});
+  const [calendarMonth, setCalendarMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+  const [calendarSelectedDay, setCalendarSelectedDay] = useState(() => dateKey(new Date()));
+  const [calendarFilters, setCalendarFilters] = useState<string[]>(["interview", "meeting", "deadline", "offer"]);
+  const [profileTab, setProfileTab] = useState("Overview");
+  const [settingsTab, setSettingsTab] = useState("Account Settings");
+  const [settingsInfo, setSettingsInfo] = useState({ email: "juan.delacruz@email.com", phone: "+63 912 345 6789", birthDate: "2004-05-24", gender: "Male", location: "Calamba, Laguna", language: "English", country: "Philippines", timeZone: "(GMT+8) Manila", dateFormat: "MM/DD/YYYY", numberFormat: "1,234.56" });
+  const [notificationPrefs, setNotificationPrefs] = useState({ system: true, matches: true, messages: true, applications: true, employer: true, calendar: true, advice: false, promotions: false });
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState(true);
+  const [currentPlan, setCurrentPlan] = useState("Free");
+  const [billingCadence, setBillingCadence] = useState("Monthly");
+  const [deleteAccountArmed, setDeleteAccountArmed] = useState(false);
+  const [settingsHelpQuery, setSettingsHelpQuery] = useState("");
+  const [feedbackText, setFeedbackText] = useState("");
   const [sf, setSf] = useState(searchFilterDefaults);
   const [sortBy, setSortBy] = useState("relevant");
   const [selSearch, setSelSearch] = useState<number | null>(null);
@@ -3412,6 +3521,22 @@ function JobSeekerView({ onBack, events, setEvents }: { onBack: () => void; even
   const respondInvite = (id: number, status: "Accepted" | "Declined") => setEvents(prev => prev.map(e => e.id === id ? { ...e, status } : e));
   const myInvites = events.filter(e => e.invite && e.status !== "Cancelled");
   const newInvites = events.filter(e => e.invite && e.status === "Invited").length;
+  const savedRows = (savedView === "Applied" ? searchCatalog.filter(j => applied.includes(j.id)) : saved.filter(j => savedView !== "Not Applied" || !applied.includes(j.id))).filter(j => !savedQuery.trim() || [j.title, j.company, ...j.reqSkills].join(" ").toLowerCase().includes(savedQuery.trim().toLowerCase()));
+  const selectedSaved = savedRows.find(j => j.id === selectedSavedId) ?? savedRows[0] ?? null;
+  const calendarToday = new Date();
+  const calendarOffset = (days: number) => dateKey(new Date(calendarToday.getFullYear(), calendarToday.getMonth(), calendarToday.getDate() + days));
+  const seekerCalendarItems: CalEvent[] = [
+    { id: -1, kind: "interview", title: "Interview with Google", date: calendarOffset(2), time: "10:00", duration: 30, platform: "Google Meet", notes: "UI/UX Designer · Initial interview", status: "Confirmed", invite: false },
+    { id: -2, kind: "meeting", title: "Portfolio review", date: calendarOffset(5), time: "14:00", duration: 45, platform: "Google Meet", notes: "Prepare selected product design work.", status: "Confirmed", invite: false },
+    { id: -3, kind: "deadline", title: "Submit updated portfolio", date: calendarOffset(12), time: "23:59", duration: 0, platform: "Personal", notes: "Update portfolio before applying.", status: "Confirmed", invite: false },
+    { id: -4, kind: "meeting", title: "UX Trends Webinar", date: calendarOffset(19), time: "15:00", duration: 60, platform: "Online", notes: "Career development event.", status: "Confirmed", invite: false },
+    { id: -5, kind: "interview", title: "Interview with Figma", date: calendarOffset(8), time: "11:00", duration: 30, platform: "Google Meet", notes: "Product Designer · Recruiter screen", status: "Confirmed", invite: false },
+  ];
+  const calendarItems = [...seekerCalendarItems, ...myInvites.filter(e => e.status !== "Cancelled" && e.status !== "Declined")];
+  const calendarVisibleItems = calendarItems.filter(e => calendarFilters.includes(e.kind));
+  const calendarFirstDay = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), 1);
+  const calendarDays = Array.from({ length: 42 }, (_, i) => new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), 1 - calendarFirstDay.getDay() + i));
+  const calendarUpcoming = calendarVisibleItems.filter(e => e.date >= dateKey(calendarToday)).sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time)).slice(0, 5);
   const firstName = userProfile.name.split(" ")[0];
   const card = "bg-white rounded-2xl shadow-lg border border-[#cdccd5]/50";
   const activityIcon = (k: string) => k === "like" ? <Heart size={18} className="text-orange-500 fill-orange-500" /> : k === "save" ? <Bookmark size={18} className="text-[#353457] fill-[#353457]" /> : <Eye size={18} className="text-[#353457]" />;
@@ -3420,7 +3545,7 @@ function JobSeekerView({ onBack, events, setEvents }: { onBack: () => void; even
     <div className="min-h-screen lg:h-screen flex bg-gradient-to-br from-white via-slate-50 to-purple-100/60 text-[#03012d]">
       {/* SIDEBAR */}
       <aside className="hidden lg:flex w-60 shrink-0 flex-col p-5 bg-[#03012d] text-white">
-        <div className="mb-8 px-2"><p className="text-2xl font-extrabold tracking-tight">KAIROS</p><p className="text-[10px] tracking-widest text-[#9a99ab]">FOR JOB SEEKERS</p></div>
+        <HireMeMaybeLogo audience="Job Seekers" />
         <nav className="flex flex-col gap-1">
           {seekerNav.map(item => { const Icon = item.icon; const active = nav === item.label; const badge = item.label === "Calendar" ? newInvites : item.badge ?? 0; return (
             <button key={item.label} onClick={() => setNav(item.label)} className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${active ? "bg-[#353457] text-white" : "text-[#cdccd5] hover:bg-white/10"}`}>
@@ -3660,47 +3785,156 @@ function JobSeekerView({ onBack, events, setEvents }: { onBack: () => void; even
         )}
 
         {nav === "Saved Jobs" && (
-          <main className="flex-1 overflow-y-auto p-4 lg:px-6 lg:pb-6">
-            <h1 className="text-3xl font-extrabold">Saved Jobs</h1>
-            <p className="text-sm text-[#686781] mt-1 mb-5">Jobs you've bookmarked to come back to.</p>
-            {saved.length === 0 ? <div className={`${card} p-10 text-center max-w-md`}><p className="font-bold">Nothing saved yet</p><p className="text-sm text-[#686781] mt-1">Tap Save on a job card to keep it here.</p></div> : (
-              <ul className="grid md:grid-cols-2 gap-4">{saved.map(j => { const m = matchOf(j); return (
-                <li key={j.id} className={`${card} p-4 flex items-center gap-4`}>
-                  <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${j.color} text-white text-xl font-extrabold flex items-center justify-center shrink-0`}>{j.company.charAt(0)}</div>
-                  <div className="flex-1 min-w-0"><p className="font-bold truncate">{j.title}</p><p className="text-xs text-[#686781]">{j.company} &bull; {j.workSetup}</p><span className={`inline-block mt-1 text-[11px] font-bold px-2 py-0.5 rounded-full ${tierBadge[m.tier]}`}>{m.score}% Match</span></div>
-                  <div className="flex flex-col gap-1.5">
-                    <button onClick={() => likeJob(j)} className="px-3 py-1.5 rounded-lg bg-[#353457] text-white text-xs font-bold hover:bg-[#03012d]">Like</button>
-                    <button onClick={() => setSaved(prev => prev.filter(x => x.id !== j.id))} className="text-xs text-[#686781] hover:text-red-500">Remove</button>
-                  </div>
-                </li>
-              ); })}</ul>
-            )}
+          <main className="flex-1 min-h-0 overflow-y-auto p-4 lg:px-6 lg:pb-6">
+            <div className="flex flex-wrap items-end justify-between gap-3 mb-4"><div><h1 className="text-3xl font-extrabold">Saved Jobs</h1><p className="text-sm text-[#686781] mt-1">Keep track of the opportunities you’re interested in.</p></div><label className="relative w-full sm:w-64"><Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9a99ab]" /><input value={savedQuery} onChange={e => setSavedQuery(e.target.value)} placeholder="Search saved jobs..." className="w-full pl-9 pr-3 py-2.5 bg-white border border-[#cdccd5] rounded-xl text-sm focus:outline-none focus:border-[#353457]" /></label></div>
+            <div className="flex gap-5 border-b border-[#cdccd5]/70 mb-4">{["All Saved", "Applied", "Not Applied"].map(t => <button key={t} onClick={() => setSavedView(t)} className={"pb-2 text-sm font-semibold border-b-2 " + (savedView === t ? "border-[#353457] text-[#353457]" : "border-transparent text-[#686781]")}>{t}</button>)}</div>
+            <div className="grid xl:grid-cols-[minmax(0,1fr)_390px] gap-4 items-start">
+              <section className={card + " p-3 min-w-0"}>
+                {savedRows.length === 0 ? <div className="p-12 text-center"><Bookmark size={28} className="mx-auto text-[#9a99ab] mb-3" /><p className="font-bold">No jobs in this list</p><p className="text-sm text-[#686781] mt-1">Save a job from Search to keep it here.</p><button onClick={() => setNav("Search")} className="mt-4 px-4 py-2 rounded-lg bg-[#353457] text-white text-sm font-bold">Browse jobs</button></div> : (
+                  <ul className="space-y-2">{savedRows.map(j => { const m = calculateMatch(userProfile, j); const active = selectedSaved?.id === j.id; return (
+                    <li key={j.id} className={"rounded-xl border p-3 transition-colors " + (active ? "border-[#353457] bg-[#353457]/5" : "border-[#cdccd5]/50 hover:bg-slate-50")}>
+                      <div className="flex items-start gap-3"><button onClick={() => setSelectedSavedId(j.id)} className="flex flex-1 min-w-0 text-left items-start gap-3">
+                        <span className={"w-12 h-12 rounded-xl bg-gradient-to-br " + j.color + " text-white text-lg font-extrabold flex items-center justify-center shrink-0"}>{j.company.charAt(0)}</span>
+                        <span className="min-w-0 flex-1"><span className="block font-bold text-sm truncate">{j.title}</span><span className="block text-xs text-[#686781]">{j.company}</span><span className="flex flex-wrap gap-x-3 mt-1 text-[11px] text-[#9a99ab]"><span>{j.workSetup}</span><span>{j.jobType}</span><span>{peso(searchCatalog.find(x => x.id === j.id)?.salaryMin ?? 0)}–{peso(searchCatalog.find(x => x.id === j.id)?.salaryMax ?? 0)}</span></span></span>
+                      </button><button onClick={() => { setSaved(prev => prev.filter(x => x.id !== j.id)); flash("Removed from Saved Jobs"); }} aria-label="Remove saved job" className="p-2 text-[#353457] hover:text-red-500"><Bookmark size={17} fill="currentColor" /></button></div>
+                      <div className="flex items-center gap-2 mt-3"><div className="flex flex-wrap gap-1.5 flex-1">{j.reqSkills.slice(0, 4).map(sk => <span key={sk} className="text-[10px] px-2 py-1 rounded-full bg-[#cdccd5]/30 text-[#353457]">{sk}</span>)}</div><span className={"text-[10px] font-bold px-2 py-1 rounded-full " + tierBadge[m.tier]}>{m.score}% Match</span><button onClick={() => applyTo(j)} className="px-3 py-1.5 rounded-lg bg-[#353457] text-white text-xs font-bold hover:bg-[#03012d]">Apply</button></div>
+                    </li>
+                  ); })}</ul>
+                )}
+              </section>
+              <aside className={card + " p-5 min-w-0"}>
+                {!selectedSaved ? <p className="py-12 text-center text-sm text-[#686781]">Select a saved job to preview its details.</p> : (() => { const extra = searchCatalog.find(x => x.id === selectedSaved.id); const m = matchOf(selectedSaved); return <>
+                  <div className="flex items-start gap-3"><span className={"w-14 h-14 rounded-2xl bg-gradient-to-br " + selectedSaved.color + " text-white text-xl font-extrabold flex items-center justify-center shrink-0"}>{selectedSaved.company.charAt(0)}</span><div className="flex-1 min-w-0"><h2 className="text-xl font-extrabold">{selectedSaved.title}</h2><p className="text-sm text-[#686781]">{selectedSaved.company}</p></div><span className={"text-xs font-bold px-2.5 py-1 rounded-full " + tierBadge[m.tier]}>{m.score}% Match</span></div>
+                  <p className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-[#686781] mt-3"><span>{selectedSaved.workSetup}</span><span>{selectedSaved.jobType}</span><span>{peso(extra?.salaryMin ?? 0)}–{peso(extra?.salaryMax ?? 0)}</span></p>
+                  <div className="flex flex-wrap gap-1.5 mt-3">{selectedSaved.reqSkills.map(sk => <span key={sk} className="text-[11px] px-2 py-1 rounded-full bg-[#353457]/10 text-[#353457]">{sk}</span>)}</div>
+                  <div className="border-t border-[#cdccd5]/60 mt-4 pt-4"><h3 className="font-bold">Job Overview</h3><p className="text-sm text-[#686781] leading-relaxed mt-1">{selectedSaved.description}</p></div>
+                  <div className="mt-4"><h3 className="font-bold text-sm mb-2">Job Highlights</h3><div className="grid grid-cols-2 gap-2 text-xs"><p className="p-2 rounded-lg bg-slate-50"><b>Experience</b><br />{selectedSaved.level} level</p><p className="p-2 rounded-lg bg-slate-50"><b>Work setup</b><br />{selectedSaved.workSetup}</p><p className="p-2 rounded-lg bg-slate-50"><b>Salary range</b><br />{peso(extra?.salaryMin ?? 0)}–{peso(extra?.salaryMax ?? 0)}</p><p className="p-2 rounded-lg bg-slate-50"><b>Location</b><br />{selectedSaved.location}</p></div></div>
+                  <div className="mt-4"><h3 className="font-bold text-sm mb-1">Your Notes <span className="font-normal text-[#9a99ab]">(optional)</span></h3><textarea value={savedNotes[selectedSaved.id] ?? ""} onChange={e => setSavedNotes(prev => ({ ...prev, [selectedSaved.id]: e.target.value }))} placeholder="Add a reminder for this role..." rows={3} className="w-full p-3 rounded-xl bg-[#f8f9fa] border border-[#cdccd5] text-xs focus:outline-none focus:border-[#353457]" /></div>
+                  <div className="grid grid-cols-2 gap-2 mt-4"><button onClick={() => setDetailsJob(selectedSaved)} className="py-2.5 rounded-xl border border-[#353457] text-[#353457] text-sm font-bold">View Full Details</button><button onClick={() => applyTo(selectedSaved)} className="py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-bold">Apply Now <Send size={14} className="inline ml-1" /></button></div>
+                </>; })()}
+              </aside>
+            </div>
           </main>
         )}
 
         {nav === "Calendar" && (
-          <main className="flex-1 overflow-y-auto p-4 lg:px-6 lg:pb-6">
-            <h1 className="text-3xl font-extrabold">Calendar</h1>
-            <p className="text-sm text-[#686781] mt-1 mb-5">Interview invites from employers and your confirmed schedule.</p>
-            {myInvites.length === 0 ? <div className={`${card} p-10 text-center max-w-md`}><p className="font-bold">No interview invites yet</p><p className="text-sm text-[#686781] mt-1">When an employer invites you, it will show up here.</p></div> : (
-              <ul className="space-y-3 max-w-2xl">{myInvites.map(e => (
-                <li key={e.id} className={`${card} p-4`}>
-                  <p className="font-bold">Creative Studio PH</p>
-                  <p className="text-sm text-[#686781]">{e.title.replace("Interview with ", "Interview for ")} &bull; {employerCandidates.find(c => c.id === e.candidateId)?.role}</p>
-                  {e.notes && <p className="text-xs text-[#9a99ab] mt-1">{e.notes}</p>}
-                  {e.status === "Invited" && <div className="grid grid-cols-2 gap-2 mt-3 max-w-xs"><button onClick={() => respondInvite(e.id, "Declined")} className="py-2 rounded-lg border border-[#cdccd5] text-sm font-semibold">Decline</button><button onClick={() => respondInvite(e.id, "Accepted")} className="py-2 rounded-lg bg-[#03012d] text-white text-sm font-bold hover:bg-[#353457]">Accept</button></div>}
-                  {e.status === "Accepted" && <p className="text-sm font-semibold text-amber-600 mt-3">Accepted. Waiting for the employer to set a date and time.</p>}
-                  {e.status === "Declined" && <p className="text-sm font-semibold text-red-500 mt-3">You declined this invite.</p>}
-                  {e.status === "Confirmed" && <div className="mt-3 bg-emerald-50 rounded-lg p-3 text-sm"><p className="font-bold text-emerald-700">Confirmed</p><p>{fmtDate(e.date, { weekday: "long", month: "long", day: "numeric", year: "numeric" })}</p><p>{fmtTime(e.time)} &ndash; {fmtTime(addMinutes(e.time, e.duration))} &bull; {e.platform}</p></div>}
-                </li>
-              ))}</ul>
-            )}
+          <main className="flex-1 min-h-0 overflow-y-auto p-4 lg:px-6 lg:pb-6">
+            <div className="flex flex-wrap items-end justify-between gap-3 mb-4"><div><h1 className="text-3xl font-extrabold">Calendar</h1><p className="text-sm text-[#686781] mt-1">Manage your job search activities, interviews, and important dates.</p></div><button onClick={() => { setCalendarMonth(new Date(new Date().getFullYear(), new Date().getMonth(), 1)); setCalendarSelectedDay(dateKey(new Date())); }} className="px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-bold">Today</button></div>
+            <div className="grid xl:grid-cols-[minmax(0,1fr)_300px] gap-4">
+              <section className={card + " overflow-hidden"}>
+                <header className="flex flex-wrap items-center justify-between gap-3 p-4 border-b border-[#cdccd5]/60"><div className="flex items-center gap-3"><button aria-label="Previous month" onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1, 1))} className="w-9 h-9 rounded-lg border border-[#cdccd5]"><ChevronLeft size={18} className="mx-auto" /></button><button aria-label="Next month" onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1))} className="w-9 h-9 rounded-lg border border-[#cdccd5]"><ChevronRight size={18} className="mx-auto" /></button><h2 className="text-lg font-extrabold">{calendarMonth.toLocaleDateString("en-US", { month: "long", year: "numeric" })}</h2></div><span className="text-xs text-[#686781]">{calendarVisibleItems.length} events</span></header>
+                <div className="grid grid-cols-7 border-b border-[#cdccd5]/50">{["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(d => <div key={d} className="p-2 text-center text-xs font-semibold text-[#686781]">{d}</div>)}</div>
+                <div className="grid grid-cols-7">{calendarDays.map(day => { const key = dateKey(day); const items = calendarVisibleItems.filter(e => e.date === key); const inMonth = day.getMonth() === calendarMonth.getMonth(); return <button key={key} onClick={() => setCalendarSelectedDay(key)} className={"min-h-[88px] border-b border-r border-[#cdccd5]/40 p-1.5 text-left " + (!inMonth ? "bg-slate-50 text-[#b7b7c2]" : "bg-white") + (calendarSelectedDay === key ? " ring-2 ring-inset ring-indigo-500" : "") + (key === dateKey(calendarToday) ? " bg-indigo-50/70" : "")}><span className="text-xs font-bold">{day.getDate()}</span><span className="block space-y-1 mt-1">{items.slice(0, 2).map(e => <span key={e.id} className={"block truncate rounded px-1 py-0.5 text-[9px] font-semibold " + (e.kind === "interview" ? "bg-orange-100 text-orange-800" : e.kind === "deadline" ? "bg-rose-100 text-rose-800" : e.kind === "meeting" ? "bg-violet-100 text-violet-800" : "bg-emerald-100 text-emerald-800")}>{e.title}</span>)}{items.length > 2 && <span className="text-[9px] text-[#686781]">+{items.length - 2} more</span>}</span></button>; })}</div>
+              </section>
+              <aside className={card + " p-4"}><h2 className="font-extrabold">Upcoming Events</h2><p className="text-xs text-[#686781] mt-1 mb-3">{fmtDate(calendarSelectedDay, { month: "long", day: "numeric", year: "numeric" })}</p><ul className="space-y-2">{calendarVisibleItems.filter(e => e.date === calendarSelectedDay).length ? calendarVisibleItems.filter(e => e.date === calendarSelectedDay).map(e => <li key={e.id} className="p-3 rounded-xl bg-slate-50"><p className="font-bold text-sm">{e.title}</p><p className="text-xs text-[#686781] mt-1">{fmtTime(e.time)}{e.duration ? " · " + e.duration + " min" : ""}</p><p className="text-xs text-[#9a99ab]">{e.platform} · {e.notes}</p>{e.invite && e.status === "Invited" && <div className="grid grid-cols-2 gap-2 mt-3"><button onClick={() => respondInvite(e.id, "Declined")} className="py-2 rounded-lg border border-[#cdccd5] text-xs font-semibold">Decline</button><button onClick={() => respondInvite(e.id, "Accepted")} className="py-2 rounded-lg bg-[#03012d] text-white text-xs font-bold">Accept</button></div>}{e.invite && e.status === "Accepted" && <p className="text-xs text-amber-700 mt-2">Accepted; waiting for employer confirmation.</p>}</li>) : calendarUpcoming.map(e => <li key={e.id} className="p-3 rounded-xl bg-slate-50"><p className="font-bold text-sm">{e.title}</p><p className="text-xs text-[#686781] mt-1">{fmtDate(e.date, { month: "short", day: "numeric" })} · {fmtTime(e.time)}</p><p className="text-xs text-[#9a99ab]">{e.platform}</p></li>)}{calendarUpcoming.length === 0 && <li className="text-sm text-[#686781] p-3">No upcoming events.</li>}</ul></aside>
+            </div>
+            <section className={card + " p-4 mt-4"}><h3 className="font-extrabold">Event Types</h3><p className="text-xs text-[#686781] mb-3">Choose what you want to see on your calendar.</p><div className="flex flex-wrap gap-2">{[["interview", "Interviews"], ["meeting", "Meetings & Events"], ["deadline", "Deadlines"], ["offer", "Offers"]].map(([kind, label]) => <label key={kind} className="flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-50 text-xs font-semibold"><input type="checkbox" checked={calendarFilters.includes(kind)} onChange={() => setCalendarFilters(prev => prev.includes(kind) ? prev.filter(x => x !== kind) : [...prev, kind])} />{label}</label>)}</div></section>
+          </main>
+        )}
+        {nav === "Messages" && <SeekerMessagesPage conversations={seekerConversations} setConversations={setSeekerConversations} />}
+
+        {nav === "Profile" && (
+          <main className="flex-1 min-h-0 overflow-y-auto p-4 lg:px-6 lg:pb-6">
+            <div className={card + " p-5 mb-4"}>
+              <div className="flex flex-wrap items-center gap-4">
+                <Avatar name={userProfile.name} className="w-20 h-20 text-2xl" />
+                <div className="flex-1 min-w-0"><h1 className="text-3xl font-extrabold">{userProfile.name}</h1><p className="text-sm text-[#686781] mt-1">{userProfile.education} Graduate <span className="mx-1">·</span> Aspiring Data Analyst</p><div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-[#686781] mt-3"><span className="flex items-center gap-1"><MapPin size={13} /> Calamba, Laguna</span><span className="flex items-center gap-1"><Mail size={13} /> juan.delacruz@email.com</span><span>linkedin.com/in/juandelacruz</span></div></div>
+                <button onClick={() => setModal("profile")} className="px-4 py-2 rounded-lg border border-indigo-500 text-indigo-700 text-sm font-semibold"><Pencil size={14} className="inline mr-1" /> Edit Profile</button>
+              </div>
+            </div>
+            <div className="grid xl:grid-cols-[minmax(0,1fr)_290px] gap-4 items-start">
+              <section className="min-w-0">
+                <div className={card + " flex gap-1 overflow-x-auto p-1.5 mb-4"}>{["Overview", "Resume", "Skills", "Experience", "Education", "Preferences"].map(t => <button key={t} onClick={() => setProfileTab(t)} className={"px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap " + (profileTab === t ? "bg-indigo-600 text-white" : "text-[#686781] hover:bg-slate-50")}>{t}</button>)}</div>
+                {profileTab === "Overview" && <div className="space-y-4">
+                  <div className={card + " p-5"}><div className="flex justify-between items-center"><h2 className="font-extrabold">About Me</h2><button onClick={() => setModal("profile")} aria-label="Edit bio" className="text-indigo-600"><Pencil size={15} /></button></div><p className="text-sm text-[#686781] leading-relaxed mt-2">{userProfile.bio}</p></div>
+                  <div className={card + " p-5"}><div className="flex items-center justify-between"><h2 className="font-extrabold">Top Skills</h2><button onClick={() => setProfileTab("Skills")} className="text-xs font-semibold text-indigo-600">Edit skills</button></div><div className="flex flex-wrap gap-2 mt-3">{userProfile.skills.map(sk => <span key={sk} className="px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-800 text-xs font-semibold">{sk}</span>)}<button onClick={() => setModal("profile")} className="px-3 py-1.5 rounded-lg border border-dashed border-indigo-300 text-indigo-700 text-xs font-semibold">+ Add Skill</button></div></div>
+                  <div className={card + " p-5"}><div className="flex justify-between items-center"><h2 className="font-extrabold">Work Experience</h2><button onClick={() => flash("Experience editing is coming soon.")} className="text-xs font-semibold text-indigo-600">+ Add Experience</button></div><div className="mt-4 border-l-2 border-indigo-100 pl-4"><p className="font-bold text-sm">Business Analyst Intern</p><p className="text-xs text-[#686781]">ABC Company · Jun 2024 – Aug 2024</p><ul className="list-disc pl-4 mt-2 text-xs text-[#686781] space-y-1"><li>Assisted with data collection and reporting.</li><li>Supported the team in improving business processes.</li><li>Built hands-on experience with Excel and data analysis tools.</li></ul></div></div>
+                  <div className={card + " p-5"}><div className="flex justify-between items-center"><h2 className="font-extrabold">Education</h2><button onClick={() => flash("Education editing is coming soon.")} className="text-xs font-semibold text-indigo-600">+ Add Education</button></div><p className="font-bold text-sm mt-3">{userProfile.education}</p><p className="text-xs text-[#686781]">Calamba State University · 2020 – 2024</p></div>
+                </div>}
+                {profileTab === "Resume" && <div className={card + " p-6"}><h2 className="font-extrabold">Resume</h2><p className="text-sm text-[#686781] mt-1">Keep your latest resume ready for applications.</p><div className="mt-5 p-5 rounded-xl border border-dashed border-[#cdccd5] text-center"><FileText size={28} className="mx-auto text-indigo-600 mb-2" /><p className="font-semibold text-sm">{userProfile.resumeUploaded ? userProfile.resumeName : "No resume uploaded yet"}</p><button onClick={() => resumeRef.current?.click()} className="mt-3 px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-bold">{userProfile.resumeUploaded ? "Replace Resume" : "Upload Resume"}</button><input ref={resumeRef} type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={e => { pickResume(e.target.files?.[0]); e.target.value = ""; }} /></div></div>}
+                {profileTab === "Skills" && <div className={card + " p-5"}><h2 className="font-extrabold">Skills & Certifications</h2><p className="text-xs text-[#686781] mt-1">Your competencies help employers assess role fit.</p><h3 className="font-bold text-sm mt-4 mb-2">Skills</h3><div className="flex flex-wrap gap-2">{userProfile.skills.map(sk => <span key={sk} className="px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-800 text-xs font-semibold">{sk}</span>)}</div><h3 className="font-bold text-sm mt-5 mb-2">Certifications</h3><div className="flex flex-wrap gap-2">{userProfile.certs.map(cert => <span key={cert} className="px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-800 text-xs font-semibold">{cert}</span>)}</div><button onClick={() => setModal("profile")} className="mt-5 px-4 py-2 rounded-lg border border-indigo-400 text-indigo-700 text-sm font-semibold">Edit Skills</button></div>}
+                {profileTab === "Experience" && <div className={card + " p-5"}><h2 className="font-extrabold">Work Experience</h2><div className="mt-4 border-l-2 border-indigo-100 pl-4"><p className="font-bold text-sm">Business Analyst Intern</p><p className="text-xs text-[#686781]">ABC Company · Jun 2024 – Aug 2024</p><p className="text-sm text-[#686781] mt-2">Supported data reporting and process improvement projects while collaborating with business teams.</p></div><button onClick={() => flash("Experience editing is coming soon.")} className="mt-5 px-4 py-2 rounded-lg border border-indigo-400 text-indigo-700 text-sm font-semibold">+ Add Experience</button></div>}
+                {profileTab === "Education" && <div className={card + " p-5"}><h2 className="font-extrabold">Education</h2><p className="font-bold text-sm mt-4">{userProfile.education}</p><p className="text-xs text-[#686781]">Calamba State University · 2020 – 2024</p><div className="mt-4"><p className="font-bold text-sm">Certifications</p>{userProfile.certs.map(cert => <p key={cert} className="text-sm text-[#686781] mt-1">{cert}</p>)}</div></div>}
+                {profileTab === "Preferences" && <div className={card + " p-5"}><h2 className="font-extrabold">Job Preferences</h2><p className="text-sm text-[#686781] mt-1">Roles and work arrangements you’re looking for.</p><div className="space-y-3 mt-4 text-sm"><p><b>Job type</b><br /><span className="text-[#686781]">{prefs.jobType}</span></p><p><b>Location</b><br /><span className="text-[#686781]">{prefs.location}</span></p><p><b>Preferred roles</b><br /><span className="text-[#686781]">{prefs.roles}</span></p></div><button onClick={() => { setPrefsDraft(prefs); setModal("prefs"); }} className="mt-5 px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-bold">Edit Preferences</button></div>}
+              </section>
+              <aside className="space-y-4">
+                <div className={card + " p-5"}><h2 className="font-extrabold">Profile Completion</h2><div className="flex items-center gap-3 mt-3"><div className="relative w-16 h-16 shrink-0"><svg viewBox="0 0 64 64" className="w-full h-full -rotate-90"><circle cx="32" cy="32" r="26" fill="none" stroke="#e4e4ea" strokeWidth="6" /><circle cx="32" cy="32" r="26" fill="none" stroke="#4f46e5" strokeWidth="6" strokeDasharray={ringC} strokeDashoffset={ringC * (1 - completion / 100)} /></svg><span className="absolute inset-0 flex items-center justify-center text-xs font-extrabold">{completion}%</span></div><div><p className="text-xs text-[#686781]">Complete your profile to get more accurate matches.</p><button onClick={() => setModal("profile")} className="text-xs font-bold text-indigo-600 mt-1">Improve Profile →</button></div></div></div>
+                <div className={card + " p-5"}><h2 className="font-extrabold mb-2">Quick Actions</h2><button onClick={() => setProfileTab("Resume")} className="w-full flex items-center gap-3 py-2 text-sm text-left"><FileText size={16} className="text-indigo-600" />Update Resume<ChevronRight size={16} className="ml-auto text-[#9a99ab]" /></button><button onClick={() => setProfileTab("Skills")} className="w-full flex items-center gap-3 py-2 text-sm text-left"><BadgeCheck size={16} className="text-indigo-600" />Add Skills<ChevronRight size={16} className="ml-auto text-[#9a99ab]" /></button><button onClick={() => { setPrefsDraft(prefs); setModal("prefs"); }} className="w-full flex items-center gap-3 py-2 text-sm text-left"><Heart size={16} className="text-indigo-600" />Edit Preferences<ChevronRight size={16} className="ml-auto text-[#9a99ab]" /></button><button onClick={() => flash("Availability settings are coming soon.")} className="w-full flex items-center gap-3 py-2 text-sm text-left"><CalendarDays size={16} className="text-indigo-600" />Manage Availability<ChevronRight size={16} className="ml-auto text-[#9a99ab]" /></button></div>
+                <div className={card + " p-5"}><div className="flex justify-between items-center"><h2 className="font-extrabold">Your Job Activity</h2><span className="text-[10px] text-[#686781]">Last 30 days</span></div><div className="grid grid-cols-2 gap-2 mt-3"><div className="rounded-xl bg-indigo-50 p-3"><p className="text-2xl font-extrabold text-indigo-700">{activity.filter(a => a.kind === "like").length + applied.length}</p><p className="text-xs text-[#686781]">Jobs Applied</p></div><div className="rounded-xl bg-pink-50 p-3"><p className="text-2xl font-extrabold text-pink-700">{saved.length}</p><p className="text-xs text-[#686781]">Saved Jobs</p></div></div><button onClick={() => setModal("activity")} className="w-full mt-3 py-2 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-bold">View Recent Activity →</button></div>
+              </aside>
+            </div>
           </main>
         )}
 
-        {["Messages", "Profile", "Settings"].includes(nav) && (
-          <main className="flex-1 flex items-center justify-center p-6 text-center">
-            <div className={`${card} p-10 max-w-md`}><h2 className="text-2xl font-bold mb-2">{nav}</h2><p className="text-sm text-[#686781]">This section is coming next. Head back to Home to keep swiping.</p><button onClick={() => setNav("Home")} className="mt-6 px-6 py-2.5 rounded-full bg-[#03012d] text-white text-sm font-bold hover:bg-[#353457]">Back to Home</button></div>
+        {nav === "Settings" && (
+          <main className="flex-1 min-h-0 overflow-y-auto p-4 lg:px-6 lg:pb-6">
+            <div className="mb-4"><h1 className="text-3xl font-extrabold">Settings</h1><p className="text-sm text-[#686781] mt-1">Manage your account, preferences, and notifications.</p></div>
+            <div className="grid lg:grid-cols-[245px_minmax(0,1fr)] gap-4 items-start">
+              <aside className={card + " p-2"}>
+                {([["Account Settings", Settings, "Profile, email, password"], ["Notifications", Bell, "Job alerts and messages"], ["Subscription", CreditCard, "Manage your plan"], ["Language & Region", Globe, "App language and location"], ["Help & Support", Info, "Get help or contact us"]] as const).map(([label, Icon, desc]) => <button key={label as string} onClick={() => setSettingsTab(label as string)} className={"w-full flex items-center gap-3 rounded-xl p-3 text-left transition-colors " + (settingsTab === label ? "bg-indigo-50 text-indigo-800" : "text-[#353457] hover:bg-slate-50")}><Icon size={20} className="shrink-0" /><span className="min-w-0"><span className="block text-sm font-bold">{label as string}</span><span className="block text-[11px] text-[#686781]">{desc as string}</span></span></button>)}
+              </aside>
+
+              {settingsTab === "Account Settings" && <div className="grid xl:grid-cols-[minmax(0,1fr)_290px] gap-4 items-start">
+                <section className={card + " p-5"}>
+                  <h2 className="text-xl font-extrabold">Account Settings</h2><p className="text-sm text-[#686781] mt-1">Update your personal information and account details.</p>
+                  <div className="flex items-center gap-4 border-y border-[#cdccd5]/50 py-4 my-4"><Avatar name={userProfile.name} className="w-20 h-20 text-2xl" /><div className="flex-1"><p className="font-bold text-sm">Profile Photo</p><p className="text-xs text-[#686781]">A clear photo helps employers recognize you.</p><p className="text-[10px] text-[#9a99ab] mt-1">JPG or PNG, max 5 MB</p></div><button onClick={() => flash("Photo upload is coming soon.")} className="px-3 py-2 rounded-lg border border-indigo-400 text-indigo-700 text-xs font-bold">Change Photo</button></div>
+                  <h3 className="font-extrabold mb-3">Personal Information</h3><div className="grid sm:grid-cols-2 gap-3">
+                    <label className="text-xs font-semibold">Full Name<input value={userProfile.name} onChange={e => setUserProfile(prev => ({ ...prev, name: e.target.value }))} className="mt-1 w-full px-3 py-2.5 rounded-lg border border-[#cdccd5] text-sm font-normal" /></label>
+                    <label className="text-xs font-semibold">Date of Birth<input type="date" value={settingsInfo.birthDate} onChange={e => setSettingsInfo(prev => ({ ...prev, birthDate: e.target.value }))} className="mt-1 w-full px-3 py-2.5 rounded-lg border border-[#cdccd5] text-sm font-normal" /></label>
+                    <label className="text-xs font-semibold">Email Address<input type="email" value={settingsInfo.email} onChange={e => setSettingsInfo(prev => ({ ...prev, email: e.target.value }))} className="mt-1 w-full px-3 py-2.5 rounded-lg border border-[#cdccd5] text-sm font-normal" /></label>
+                    <label className="text-xs font-semibold">Gender<select value={settingsInfo.gender} onChange={e => setSettingsInfo(prev => ({ ...prev, gender: e.target.value }))} className="mt-1 w-full px-3 py-2.5 rounded-lg border border-[#cdccd5] text-sm font-normal"><option>Male</option><option>Female</option><option>Non-binary</option><option>Prefer not to say</option></select></label>
+                    <label className="text-xs font-semibold">Phone Number<input value={settingsInfo.phone} onChange={e => setSettingsInfo(prev => ({ ...prev, phone: e.target.value }))} className="mt-1 w-full px-3 py-2.5 rounded-lg border border-[#cdccd5] text-sm font-normal" /></label>
+                    <label className="text-xs font-semibold">Location<input value={settingsInfo.location} onChange={e => setSettingsInfo(prev => ({ ...prev, location: e.target.value }))} className="mt-1 w-full px-3 py-2.5 rounded-lg border border-[#cdccd5] text-sm font-normal" /></label>
+                  </div>
+                  <h3 className="font-extrabold mt-5 mb-3">Professional Information</h3><div className="grid sm:grid-cols-2 gap-3">
+                    <label className="text-xs font-semibold">Current Job Status<select className="mt-1 w-full px-3 py-2.5 rounded-lg border border-[#cdccd5] text-sm font-normal"><option>Actively looking for a job</option><option>Open to opportunities</option><option>Currently employed</option></select></label>
+                    <label className="text-xs font-semibold">Years of Experience<select className="mt-1 w-full px-3 py-2.5 rounded-lg border border-[#cdccd5] text-sm font-normal"><option>1–3 years</option><option>Entry level</option><option>4–6 years</option><option>7+ years</option></select></label>
+                    <label className="text-xs font-semibold">Preferred Job Type<select value={prefs.jobType} onChange={e => setPrefs(prev => ({ ...prev, jobType: e.target.value }))} className="mt-1 w-full px-3 py-2.5 rounded-lg border border-[#cdccd5] text-sm font-normal"><option>Full-time</option><option>Part-time</option><option>Contract</option><option>Internship</option></select></label>
+                    <label className="text-xs font-semibold">Highest Education Level<input value={userProfile.education} onChange={e => setUserProfile(prev => ({ ...prev, education: e.target.value }))} className="mt-1 w-full px-3 py-2.5 rounded-lg border border-[#cdccd5] text-sm font-normal" /></label>
+                  </div>
+                  <div className="flex justify-end gap-2 mt-5"><button onClick={() => setSettingsTab("Account Settings")} className="px-4 py-2.5 rounded-lg bg-slate-100 text-sm font-semibold">Cancel</button><button onClick={() => flash("Account settings saved")} className="px-5 py-2.5 rounded-lg bg-indigo-600 text-white text-sm font-bold">Save Changes</button></div>
+                </section>
+                <aside className="space-y-4">
+                  <div className={card + " p-5"}><div className="flex items-center gap-3"><span className="w-11 h-11 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center"><Crown size={23} /></span><div><h3 className="font-extrabold">Complete Your Profile</h3><p className="text-xs text-[#686781]">A complete profile can get you more job matches.</p></div></div><div className="flex items-center gap-2 mt-4"><div className="h-2.5 flex-1 rounded-full bg-slate-100"><div className="h-full rounded-full bg-indigo-600" style={{ width: completion + "%" }} /></div><b className="text-xs">{completion}%</b></div><button onClick={() => setNav("Profile")} className="w-full mt-3 py-2 rounded-lg bg-indigo-50 text-indigo-700 text-sm font-bold">Go to Profile →</button></div>
+                  <div className={card + " p-5"}><h3 className="font-extrabold flex items-center gap-2"><Lock size={17} className="text-indigo-600" />Account Security</h3><p className="text-xs text-[#686781] mt-1">Keep your account safe and secure.</p><div className="flex justify-between items-center mt-4 text-sm"><span>Password · ••••••••</span><button onClick={() => flash("Password change is not connected in this prototype.")} className="px-3 py-1.5 rounded-lg border border-indigo-300 text-indigo-700 text-xs font-bold">Change</button></div><div className="flex justify-between items-center mt-4"><span><b className="block text-sm">Two-Factor Authentication</b><span className="text-xs text-[#686781]">Add extra account protection.</span></span><button role="switch" aria-checked={twoFactorEnabled} onClick={() => setTwoFactorEnabled(v => !v)} className={"w-11 h-6 rounded-full p-1 " + (twoFactorEnabled ? "bg-indigo-600" : "bg-slate-300")}><span className={"block w-4 h-4 rounded-full bg-white transition-transform " + (twoFactorEnabled ? "translate-x-5" : "")} /></button></div><button onClick={() => flash("No other active sessions in this demo.")} className="w-full text-left mt-4 pt-3 border-t border-[#cdccd5]/50 text-sm font-semibold">Active Sessions <ChevronRight size={16} className="inline ml-1" /></button></div>
+                  <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4"><button onClick={() => setDeleteAccountArmed(true)} className="flex items-center gap-3 text-left text-rose-700"><Trash2 size={20} /><span><b className="block text-sm">Delete Account</b><span className="text-xs">Permanently delete your account and data.</span></span><ChevronRight size={18} /></button>{deleteAccountArmed && <div className="mt-3 p-3 bg-white rounded-xl"><p className="text-xs text-rose-700 font-semibold">Account deletion is unavailable in this prototype.</p><div className="flex gap-2 mt-2"><button onClick={() => setDeleteAccountArmed(false)} className="px-3 py-1.5 rounded-lg bg-slate-100 text-xs font-bold">Cancel</button><button onClick={() => { setDeleteAccountArmed(false); flash("Account deletion is not connected."); }} className="px-3 py-1.5 rounded-lg bg-rose-600 text-white text-xs font-bold">Continue</button></div></div>}</div>
+                </aside>
+              </div>}
+
+              {settingsTab === "Notifications" && <div className="grid xl:grid-cols-[minmax(0,1fr)_290px] gap-4 items-start">
+                <section className={card + " p-5"}><h2 className="text-xl font-extrabold">Notifications</h2><p className="text-sm text-[#686781] mt-1 mb-4">Choose what you want to be notified about and how.</p><div className="flex gap-4 border-b border-[#cdccd5]/60 pb-2 mb-2 text-xs font-semibold text-indigo-700"><span><Mail size={14} className="inline mr-1" />Email Notifications</span><span><Bell size={14} className="inline mr-1" />Push Notifications</span></div>
+                  {([["system", "System Updates", "Important account and platform updates.", Info], ["matches", "Job Matches", "New jobs that match your profile and skills.", Briefcase], ["employer", "Employer Activity", "When an employer views or saves your profile.", Building2], ["messages", "Messages", "New messages from employers and recruiters.", MessageCircle], ["applications", "Application Updates", "Shortlisted, reviewed, accepted, or rejected applications.", BadgeCheck], ["calendar", "Interview & Event Updates", "Scheduled interviews, assessments, and events.", CalendarDays], ["advice", "Tips & Career Advice", "Helpful tips, resources, and career guidance.", Lightbulb], ["promotions", "Promotions & Special Offers", "Exclusive offers and premium features.", Sparkles]] as const).map(([key, title, desc, Icon]) => <div key={key as string} className="flex items-center gap-3 py-3 border-b border-[#cdccd5]/40"><span className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center"><Icon size={18} /></span><span className="flex-1"><b className="block text-sm">{title as string}</b><span className="text-xs text-[#686781]">{desc as string}</span></span><button role="switch" aria-checked={notificationPrefs[key as keyof typeof notificationPrefs]} onClick={() => setNotificationPrefs(prev => ({ ...prev, [key as string]: !prev[key as keyof typeof prev] }))} className={"w-11 h-6 rounded-full p-1 " + (notificationPrefs[key as keyof typeof notificationPrefs] ? "bg-indigo-600" : "bg-slate-300")}><span className={"block w-4 h-4 rounded-full bg-white transition-transform " + (notificationPrefs[key as keyof typeof notificationPrefs] ? "translate-x-5" : "")} /></button></div>)}
+                </section>
+                <aside className="space-y-4"><div className={card + " p-5"}><h3 className="font-extrabold">Notification Preview</h3><p className="text-xs text-[#686781] mt-1 mb-3">This is how alerts may appear.</p>{([["New Job Match!", "A company matched with your profile.", Briefcase], ["New Message", "You have a new message from a recruiter.", MessageCircle], ["Interview Scheduled", "Your interview details are ready.", CalendarDays]] as const).map(([title, desc, Icon]) => <div key={title as string} className="flex gap-3 p-3 mb-2 rounded-xl bg-slate-50"><span className="w-9 h-9 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center"><Icon size={17} /></span><span><b className="block text-xs">{title as string}</b><span className="text-[11px] text-[#686781]">{desc as string}</span></span></div>)}</div><div className={card + " p-5"}><h3 className="font-extrabold">Notification Tips</h3><ul className="text-xs text-[#686781] space-y-2 mt-3"><li>Turn on job match alerts to hear about new opportunities.</li><li>Customize each alert type at any time.</li><li>Keep message and interview alerts enabled.</li></ul></div></aside>
+              </div>}
+
+              {settingsTab === "Subscription" && <section className={card + " p-5"}>
+                <div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-xl font-extrabold flex items-center gap-2"><CreditCard size={20} /> Subscription & Billing</h2><p className="text-sm text-[#686781] mt-1">Manage your plan and unlock more career tools.</p></div><span className="px-3 py-2 rounded-lg bg-indigo-50 text-indigo-800 text-xs font-bold">Current Plan: {currentPlan}</span></div>
+                <div className="flex flex-wrap items-center justify-between gap-3 mt-5 mb-4"><div><h3 className="font-bold">Choose a Plan</h3><p className="text-xs text-[#686781]">Upgrade or downgrade anytime to find the right level of support.</p></div><div className="flex items-center gap-2"><span className="text-[10px] font-bold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">Save 20%</span><div className="flex bg-[#f1f1f5] rounded-full p-1">{["Monthly", "Yearly"].map(c => <button key={c} onClick={() => setBillingCadence(c)} aria-pressed={billingCadence === c} className={"px-4 py-1.5 rounded-full text-xs font-bold transition-colors " + (billingCadence === c ? "bg-[#353457] text-white" : "text-[#686781]")}>{c}</button>)}</div></div></div>
+                <div className="grid md:grid-cols-3 gap-3 pt-2">{planOrder.map(name => { const d = planData[name]; const current = currentPlan === name; const popular = name === "Pro"; const higher = planOrder.indexOf(name) > planOrder.indexOf(currentPlan as PlanName); return <div key={name} className={"relative rounded-2xl border p-4 flex flex-col " + (popular ? "border-[#353457] ring-2 ring-[#353457]/20" : "border-[#cdccd5]/70")}>{popular && <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#353457] text-white text-[11px] font-bold px-3 py-1 rounded-full whitespace-nowrap">Most Popular</span>}<h3 className="font-extrabold">{name}</h3><p className="text-xs text-[#686781]">{d.tagline}</p><p className="mt-3"><span className="text-2xl font-extrabold">{peso(planMonthly(name, billingCadence))}</span><span className="text-xs text-[#686781]"> / month</span></p>{billingCadence === "Yearly" && d.price > 0 && <p className="text-[11px] text-[#9a99ab]">Billed {peso(planCost(name, "Yearly"))} yearly</p>}<ul className="mt-3 space-y-1.5 text-xs flex-1">{(name === "Free" ? ["Create a complete profile", "Search and apply to jobs", "Basic job matches", "Basic notifications"] : name === "Pro" ? ["Everything in Free", "See who viewed your profile", "Priority in search results", "Advanced match insights", "Application tracking", "Resume insights and tips"] : ["Everything in Pro", "Early access to new job postings", "Detailed profile analytics", "AI-powered resume review", "Career coaching resources", "Exclusive webinars and events"]).map(f => <li key={f} className="flex gap-2"><span className="text-[#353457] font-bold">✓</span>{f}</li>)}</ul><button disabled={current} onClick={() => { setCurrentPlan(name); flash(name + " plan selected"); }} className={"mt-4 w-full py-2.5 rounded-xl text-sm font-bold transition-colors " + (current ? "border border-[#cdccd5] text-[#9a99ab] cursor-default" : popular ? "bg-[#353457] text-white hover:bg-[#03012d]" : "border border-[#353457] text-[#353457] hover:bg-[#353457]/10")}>{current ? "Current Plan" : name === "Free" ? "Downgrade to Free" : higher ? "Upgrade to " + name : "Switch to " + name}</button></div>; })}</div>
+                <div className="border border-[#cdccd5]/60 rounded-2xl p-4 mt-4"><div className="flex flex-wrap items-start justify-between gap-3 mb-3"><div><h3 className="font-bold flex items-center gap-2"><CreditCard size={18} /> Current Plan Details</h3><p className="text-xs text-[#686781]">Your current tier and billing selection.</p></div><button onClick={() => flash("Billing and payment are not connected in this prototype.")} className="px-4 py-2 rounded-lg bg-[#f1f1f5] text-[#353457] text-xs font-semibold">Billing & Payment</button></div><div className="grid sm:grid-cols-3 gap-3 text-sm"><div><span className="block text-xs text-[#686781]">Plan</span><b>{currentPlan} Plan</b></div><div><span className="block text-xs text-[#686781]">Billing Cycle</span><b>{currentPlan === "Free" ? "No billing required" : billingCadence}</b></div><div><span className="block text-xs text-[#686781]">Price</span><b>{peso(planMonthly(currentPlan as PlanName, billingCadence))} / month</b></div></div></div>
+              </section>}
+              {settingsTab === "Language & Region" && <section className={card + " p-5"}>
+                <h2 className="text-xl font-extrabold">Language & Region</h2><p className="text-sm text-[#686781] mt-1 mb-4">Choose your preferred language, country, and regional settings.</p>
+                <div className="space-y-4">
+                  <label className="block p-4 rounded-xl border border-[#cdccd5]/60"><b className="block text-sm">App Language</b><span className="text-xs text-[#686781]">This changes the language used throughout the app.</span><select value={settingsInfo.language} onChange={e => setSettingsInfo(prev => ({ ...prev, language: e.target.value }))} className="block mt-3 w-full sm:w-2/3 px-3 py-2.5 rounded-lg border border-[#cdccd5] text-sm"><option>English</option><option>Filipino</option><option>日本語</option><option>한국어</option></select></label>
+                  <label className="block p-4 rounded-xl border border-[#cdccd5]/60"><b className="block text-sm">Country / Region</b><span className="text-xs text-[#686781]">Set your country for relevant jobs and salary information.</span><select value={settingsInfo.country} onChange={e => setSettingsInfo(prev => ({ ...prev, country: e.target.value }))} className="block mt-3 w-full sm:w-2/3 px-3 py-2.5 rounded-lg border border-[#cdccd5] text-sm"><option>Philippines</option><option>Singapore</option><option>United States</option><option>Canada</option><option>Australia</option></select></label>
+                  <div className="p-4 rounded-xl border border-[#cdccd5]/60"><b className="block text-sm">Location</b><span className="text-xs text-[#686781]">Choose a location to find jobs nearby.</span><div className="flex flex-wrap gap-2 mt-3"><input value={settingsInfo.location} onChange={e => setSettingsInfo(prev => ({ ...prev, location: e.target.value }))} className="flex-1 min-w-[180px] px-3 py-2.5 rounded-lg border border-[#cdccd5] text-sm" /><button onClick={() => { if (!navigator.geolocation) { flash("Location detection is not supported in this browser."); return; } navigator.geolocation.getCurrentPosition(() => { setSettingsInfo(prev => ({ ...prev, location: "Current location" })); flash("Current location detected."); }, () => flash("Location permission was unavailable or denied.")); }} className="px-4 py-2.5 rounded-lg bg-indigo-600 text-white text-sm font-bold">Use Current Location</button></div></div>
+                  <div className="p-4 rounded-xl border border-[#cdccd5]/60"><b className="block text-sm">Date, Time & Number Format</b><div className="grid sm:grid-cols-3 gap-3 mt-3"><label className="text-xs">Time Zone<select value={settingsInfo.timeZone} onChange={e => setSettingsInfo(prev => ({ ...prev, timeZone: e.target.value }))} className="block mt-1 w-full px-3 py-2 rounded-lg border border-[#cdccd5] text-sm"><option>(GMT+8) Manila</option><option>(GMT+0) London</option><option>(GMT-5) New York</option><option>(GMT+9) Tokyo</option></select></label><label className="text-xs">Date Format<select value={settingsInfo.dateFormat} onChange={e => setSettingsInfo(prev => ({ ...prev, dateFormat: e.target.value }))} className="block mt-1 w-full px-3 py-2 rounded-lg border border-[#cdccd5] text-sm"><option>MM/DD/YYYY</option><option>DD/MM/YYYY</option><option>YYYY-MM-DD</option></select></label><label className="text-xs">Number Format<select value={settingsInfo.numberFormat} onChange={e => setSettingsInfo(prev => ({ ...prev, numberFormat: e.target.value }))} className="block mt-1 w-full px-3 py-2 rounded-lg border border-[#cdccd5] text-sm"><option>1,234.56</option><option>1.234,56</option><option>1 234,56</option></select></label></div></div>
+                </div><div className="flex justify-end mt-4"><button onClick={() => flash("Language and region settings saved")} className="px-5 py-2.5 rounded-lg bg-indigo-600 text-white text-sm font-bold">Save Changes</button></div>
+              </section>}
+
+              {settingsTab === "Help & Support" && <div className="grid xl:grid-cols-[minmax(0,1fr)_290px] gap-4 items-start">
+                <section className={card + " p-5"}><h2 className="text-xl font-extrabold">Help & Support</h2><p className="text-sm text-[#686781] mt-1">Find answers and get help from our team.</p><div className="relative mt-4"><Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9a99ab]" /><input value={settingsHelpQuery} onChange={e => setSettingsHelpQuery(e.target.value)} placeholder="Search help topics..." className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-[#cdccd5] text-sm" /></div>
+                  <h3 className="font-extrabold mt-5 mb-2">Popular Help Topics</h3><div className="grid sm:grid-cols-2 gap-2">{[["Getting Started", "Create your profile, search for jobs, and apply."], ["Managing Your Profile", "Update your information, resume, and skills."], ["Searching for Jobs", "Use search filters, job matches, and alerts."], ["Saved Jobs", "Save, manage, and track interesting roles."], ["Messages", "Use in-app messaging with employers."], ["Calendar & Interviews", "Manage interview schedules and reminders."], ["Subscription & Billing", "Learn about plans, features, and payments."], ["Account & Security", "Password, privacy, and account recovery."]].filter(([title, desc]) => !settingsHelpQuery.trim() || (title + " " + desc).toLowerCase().includes(settingsHelpQuery.toLowerCase())).map(([title, desc]) => <button key={title} onClick={() => flash(title + " guide opened")} className="p-3 rounded-xl border border-[#cdccd5]/60 text-left hover:bg-slate-50"><b className="block text-sm">{title}</b><span className="text-xs text-[#686781]">{desc}</span></button>)}</div>
+                  <h3 className="font-extrabold mt-5 mb-2">Frequently Asked Questions</h3><div className="divide-y divide-[#cdccd5]/50">{["How do I create a profile?", "How does the match system work?", "Can I edit an application?", "How do I know if an employer viewed my profile?", "Is HireMeMaybe free to use?"].filter(q => !settingsHelpQuery.trim() || q.toLowerCase().includes(settingsHelpQuery.toLowerCase())).map(q => <details key={q} className="py-3 text-sm"><summary className="cursor-pointer font-semibold">{q}</summary><p className="text-xs text-[#686781] mt-2">Visit your profile and keep your skills, experience, and resume current. HireMeMaybe uses these details to help you find relevant opportunities.</p></details>)}</div>
+                </section>
+                <aside className="space-y-4"><div className={card + " p-5"}><h3 className="font-extrabold">Contact Support</h3><p className="text-xs text-[#686781] mt-1 mb-3">Still need help? Reach out to our team.</p>{([["Live Chat", "Chat with our support team", MessageCircle], ["Email Support", "Send us a message", Mail], ["Call Us", "+63 2 8123 4567", Smartphone]] as const).map(([label, desc, Icon]) => <button key={label as string} onClick={() => flash((label as string) + " is not connected in this prototype.")} className="w-full flex items-center gap-3 p-3 mb-2 rounded-xl bg-slate-50 text-left"><span className="w-9 h-9 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center"><Icon size={17} /></span><span><b className="block text-xs">{label as string}</b><span className="text-[11px] text-[#686781]">{desc as string}</span></span><ChevronRight size={16} className="ml-auto" /></button>)}</div>
+                  <div className={card + " p-5"}><h3 className="font-extrabold">Help Resources</h3>{([["User Guide", FileText], ["Video Tutorials", Eye], ["Terms of Service", Shield], ["Privacy Policy", Lock]] as const).map(([label, Icon]) => <button key={label as string} onClick={() => flash((label as string) + " opened")} className="w-full flex items-center gap-3 py-2 text-left text-sm"><Icon size={16} className="text-indigo-600" />{label as string}<ChevronRight size={15} className="ml-auto text-[#9a99ab]" /></button>)}</div>
+                  <div className={card + " p-5"}><h3 className="font-extrabold">Give Feedback</h3><p className="text-xs text-[#686781] mt-1">Have suggestions or found an issue?</p><textarea value={feedbackText} onChange={e => setFeedbackText(e.target.value)} rows={3} placeholder="Tell us what you think..." className="w-full mt-3 p-3 rounded-lg border border-[#cdccd5] text-xs" /><button onClick={() => { if (!feedbackText.trim()) { flash("Write a short note before sending feedback."); return; } setFeedbackText(""); flash("Thanks for your feedback!"); }} className="w-full mt-2 py-2.5 rounded-lg bg-indigo-600 text-white text-sm font-bold">Send Feedback</button></div>
+                </aside>
+              </div>}
+            </div>
           </main>
         )}
       </div>
@@ -3772,7 +4006,7 @@ function JobSeekerView({ onBack, events, setEvents }: { onBack: () => void; even
         <div className="fixed inset-0 bg-[#03012d]/80 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl text-center border-t-8 border-orange-500">
             <h2 className="text-2xl font-bold mb-2">Partial Match</h2>
-            <p className="text-sm text-[#686781]">You're missing {warningData.missing.length ? "these skills:" : "some of the requirements for this role."}</p>
+            <p className="text-sm text-[#686781]">You&apos;re missing {warningData.missing.length ? "these skills:" : "some of the requirements for this role."}</p>
             {warningData.missing.length > 0 && <div className="flex flex-wrap justify-center gap-1.5 mt-3">{warningData.missing.map(sk => <span key={sk} className="text-xs px-2.5 py-1 bg-red-100 text-red-700 rounded-full">{sk}</span>)}</div>}
             <div className="flex gap-4 mt-6">
               <button onClick={() => setWarningData({ show: false, missing: [], job: null })} className="flex-1 py-3 bg-gray-100 text-[#353457] rounded-xl font-bold">Cancel</button>
