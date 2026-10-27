@@ -54,6 +54,7 @@ const calculateMatch = (user: typeof initialUserProfile, job: typeof jobListings
 export default function KairosApp() {
   const [currentView, setCurrentView] = useState<'landing' | 'auth' | 'seeker' | 'employer'>('landing');
   const [targetRole, setTargetRole] = useState<'seeker' | 'employer'>('seeker');
+  const [authenticatedName, setAuthenticatedName] = useState(initialUserProfile.name);
   const [calEvents, setCalEvents] = useState<CalEvent[]>(() => makeSeedEvents());
 
   const handleProceedToAuth = (role: 'seeker' | 'employer') => {
@@ -61,14 +62,15 @@ export default function KairosApp() {
     setCurrentView('auth');
   };
 
-  const handleAuthSuccess = () => {
+  const handleAuthSuccess = (name?: string) => {
+    if (targetRole === 'seeker' && name?.trim()) setAuthenticatedName(name.trim());
     setCurrentView(targetRole); 
   };
 
   if (currentView === 'landing') return <LandingPage onProceed={handleProceedToAuth} />;
   if (currentView === 'auth') return <AuthView targetRole={targetRole} onAuthSuccess={handleAuthSuccess} onBack={() => setCurrentView('landing')} />;
   if (currentView === 'employer') return <EmployerView onBack={() => setCurrentView('landing')} events={calEvents} setEvents={setCalEvents} />;
-  return <JobSeekerView onBack={() => setCurrentView('landing')} events={calEvents} setEvents={setCalEvents} />;
+  return <JobSeekerView userName={authenticatedName} onBack={() => setCurrentView('landing')} events={calEvents} setEvents={setCalEvents} />;
 }
 
 // --- SHARED LOGO COMPONENT ---
@@ -215,8 +217,10 @@ function LandingPage({ onProceed }: { onProceed: (role: 'seeker' | 'employer') =
 }
 
 // --- AUTHENTICATION VIEW ---
-function AuthView({ targetRole, onAuthSuccess, onBack }: { targetRole: 'seeker' | 'employer', onAuthSuccess: () => void, onBack: () => void }) {
+function AuthView({ targetRole, onAuthSuccess, onBack }: { targetRole: 'seeker' | 'employer', onAuthSuccess: (name?: string) => void, onBack: () => void }) {
   const [isLogin, setIsLogin] = useState(false);
+  const [fullName, setFullName] = useState('');
+  const [loginIdentifier, setLoginIdentifier] = useState('');
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [resumeError, setResumeError] = useState('');
   const [isDragging, setIsDragging] = useState(false);
@@ -252,7 +256,7 @@ function AuthView({ targetRole, onAuthSuccess, onBack }: { targetRole: 'seeker' 
   const formatFileSize = (bytes: number) =>
     bytes < 1024 * 1024 ? `${Math.max(1, Math.round(bytes / 1024))} KB` : `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 
-  const canCreateAccount = !isSeeker || resumeFile !== null;
+  const canCreateAccount = fullName.trim().length > 0 && (!isSeeker || resumeFile !== null);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 py-10 relative text-slate-800">
@@ -306,7 +310,7 @@ function AuthView({ targetRole, onAuthSuccess, onBack }: { targetRole: 'seeker' 
                   <div>
                     <p className="text-center text-sm text-[#686781] font-medium mb-4">Step 1 of 3: Professional Info</p>
                     <div className="space-y-3">
-                      <input type="text" placeholder="Legal Full Name" className="w-full px-4 py-3 bg-gray-50 border border-[#cdccd5] rounded-lg text-sm focus:outline-none focus:border-[#353457]" />
+                      <input type="text" autoComplete="name" value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Legal Full Name" className="w-full px-4 py-3 bg-gray-50 border border-[#cdccd5] rounded-lg text-sm focus:outline-none focus:border-[#353457]" />
                       <input type="email" placeholder="Work Email Address" className="w-full px-4 py-3 bg-gray-50 border border-[#cdccd5] rounded-lg text-sm focus:outline-none focus:border-[#353457]" />
                       <div className="relative">
                         <input type="password" placeholder="Preferred Password" className="w-full px-4 py-3 bg-gray-50 border border-[#cdccd5] rounded-lg text-sm focus:outline-none focus:border-[#353457]" />
@@ -374,7 +378,7 @@ function AuthView({ targetRole, onAuthSuccess, onBack }: { targetRole: 'seeker' 
 
                   <div className="mt-6">
                     <button
-                      onClick={onAuthSuccess}
+                      onClick={() => onAuthSuccess(fullName.trim())}
                       disabled={!canCreateAccount}
                       className={`w-full font-bold py-3 rounded-full transition-colors shadow-lg ${
                         canCreateAccount
@@ -384,9 +388,7 @@ function AuthView({ targetRole, onAuthSuccess, onBack }: { targetRole: 'seeker' 
                     >
                       CREATE ACCOUNT
                     </button>
-                    {isSeeker && !resumeFile && (
-                      <p className="text-center text-xs text-[#9a99ab] mt-2">Upload your resume to create your account.</p>
-                    )}
+                    {!fullName.trim() ? <p className="text-center text-xs text-[#9a99ab] mt-2">Enter your full name to create your account.</p> : isSeeker && !resumeFile ? <p className="text-center text-xs text-[#9a99ab] mt-2">Upload your resume to create your account.</p> : null}
                   </div>
                 </motion.div>
               ) : (
@@ -399,7 +401,7 @@ function AuthView({ targetRole, onAuthSuccess, onBack }: { targetRole: 'seeker' 
                   className="flex flex-col h-full justify-between"
                 >
                   <div className="space-y-4 pt-2">
-                    <input type="text" placeholder="Username or Email" className="w-full px-4 py-3 bg-gray-50 border border-[#cdccd5] rounded-lg text-sm focus:outline-none focus:border-[#353457]" />
+                    <input type="text" autoComplete="username" value={loginIdentifier} onChange={e => setLoginIdentifier(e.target.value)} placeholder="Full Name, Username or Email" className="w-full px-4 py-3 bg-gray-50 border border-[#cdccd5] rounded-lg text-sm focus:outline-none focus:border-[#353457]" />
                     <div className="relative">
                       <input type="password" placeholder="Password" className="w-full px-4 py-3 bg-gray-50 border border-[#cdccd5] rounded-lg text-sm focus:outline-none focus:border-[#353457]" />
                       <EyeOff className="absolute right-3 top-3.5 text-[#9a99ab]" size={16} />
@@ -410,7 +412,7 @@ function AuthView({ targetRole, onAuthSuccess, onBack }: { targetRole: 'seeker' 
                   </div>
 
                   <div className="mt-8">
-                    <button onClick={onAuthSuccess} className="w-full bg-[#03012d] text-white font-bold py-3 rounded-full hover:bg-[#353457] transition-colors shadow-lg mb-6">
+                    <button onClick={() => onAuthSuccess(loginIdentifier.includes('@') ? undefined : loginIdentifier.trim())} className="w-full bg-[#03012d] text-white font-bold py-3 rounded-full hover:bg-[#353457] transition-colors shadow-lg mb-6">
                       LOG IN
                     </button>
                     
@@ -420,13 +422,13 @@ function AuthView({ targetRole, onAuthSuccess, onBack }: { targetRole: 'seeker' 
                     </div>
 
                     <div className="flex justify-center gap-4 mb-4">
-                      <button onClick={onAuthSuccess} className="w-12 h-12 rounded-full border border-[#cdccd5] flex items-center justify-center text-[#686781] hover:bg-gray-50 hover:border-[#9a99ab] transition-all">
+                      <button onClick={() => onAuthSuccess()} className="w-12 h-12 rounded-full border border-[#cdccd5] flex items-center justify-center text-[#686781] hover:bg-gray-50 hover:border-[#9a99ab] transition-all">
                         <span className="font-extrabold text-xl font-serif">G</span>
                       </button>
-                      <button onClick={onAuthSuccess} className="w-12 h-12 rounded-full border border-[#cdccd5] flex items-center justify-center text-[#0077b5] hover:bg-gray-50 hover:border-[#9a99ab] transition-all">
+                      <button onClick={() => onAuthSuccess()} className="w-12 h-12 rounded-full border border-[#cdccd5] flex items-center justify-center text-[#0077b5] hover:bg-gray-50 hover:border-[#9a99ab] transition-all">
                         <Globe size={20} />
                       </button>
-                      <button onClick={onAuthSuccess} className="w-12 h-12 rounded-full border border-[#cdccd5] flex items-center justify-center text-[#03012d] hover:bg-gray-50 hover:border-[#9a99ab] transition-all">
+                      <button onClick={() => onAuthSuccess()} className="w-12 h-12 rounded-full border border-[#cdccd5] flex items-center justify-center text-[#03012d] hover:bg-gray-50 hover:border-[#9a99ab] transition-all">
                         <Code size={20} />
                       </button>
                     </div>
@@ -1207,11 +1209,6 @@ function EmployerView({ onBack, events, setEvents }: { onBack: () => void; event
     setTimeout(() => {
       setThreads(prev => ({ ...prev, [id]: [...prev[id], { from: "them", text: "Thanks for the message! I'll get back to you shortly.", time: now() }] }));
     }, 1500);
-  };
-
-  const browse = (step: number) => {
-    if (visible.length < 2) return;
-    setDeckPos((index + step + visible.length) % visible.length);
   };
 
   const decide = (liked: boolean) => {
@@ -2794,14 +2791,32 @@ function EmployerView({ onBack, events, setEvents }: { onBack: () => void; event
             <section className="flex flex-col items-center min-w-0">
               <div className="w-full mb-4">
                 <h1 className="text-2xl lg:text-3xl font-extrabold">Good day, {companyName}!</h1>
-                <p className="text-[#cdccd5] text-sm mt-1">Swipe through job seekers who are interested in your company.</p>
+                <p className="text-[#cdccd5] text-sm mt-1">Swipe left to pass or right to shortlist. You can also use the buttons below.</p>
               </div>
 
               {current ? (
                 <div className="relative w-full max-w-sm flex items-center justify-center">
-                  <button onClick={() => browse(-1)} aria-label="Previous candidate" className="absolute -left-4 sm:-left-14 z-10 w-11 h-11 rounded-full bg-white/90 text-[#03012d] flex items-center justify-center shadow-lg"><ChevronLeft size={20} /></button>
                   <AnimatePresence mode="wait">
-                    <motion.div key={current.id} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.2 }} className="w-full bg-white rounded-3xl shadow-2xl overflow-hidden text-[#03012d]">
+                    <motion.div
+                      key={current.id}
+                      initial={{ opacity: 0, x: 40 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -40 }}
+                      transition={{ duration: 0.2 }}
+                      className="w-full touch-pan-y cursor-grab active:cursor-grabbing bg-white rounded-3xl shadow-2xl overflow-hidden text-[#03012d]"
+                      drag="x"
+                      dragDirectionLock
+                      dragMomentum={false}
+                      dragSnapToOrigin
+                      dragConstraints={{ left: -220, right: 220 }}
+                      dragElastic={0.6}
+                      onDragEnd={(_, info) => {
+                        const pass = info.offset.x < -65 || (info.offset.x < -25 && info.velocity.x < -450);
+                        const shortlist = info.offset.x > 65 || (info.offset.x > 25 && info.velocity.x > 450);
+                        if (pass) decide(false);
+                        else if (shortlist) decide(true);
+                      }}
+                    >
                       <div className="relative h-60 bg-gradient-to-br from-[#353457] via-[#686781] to-purple-300 flex items-center justify-center">
                         <span className="text-7xl font-extrabold text-white/80">{current.name.split(" ").map(n => n[0]).slice(0, 2).join("")}</span>
                         <span className="absolute top-4 left-4 flex items-center gap-1.5 bg-white/90 text-[#353457] text-xs font-semibold px-3 py-1.5 rounded-full"><Heart size={12} className="fill-[#353457]" /> Interested in you</span>
@@ -2823,13 +2838,12 @@ function EmployerView({ onBack, events, setEvents }: { onBack: () => void; event
                         </div>
                         <p className="text-sm text-[#686781] mt-3 leading-relaxed">{current.bio}</p>
                         <div className="flex justify-center gap-6 mt-5">
-                          <button onClick={() => decide(false)} aria-label="Pass" className="w-16 h-16 rounded-full bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-100 transition-colors shadow-md"><X size={28} /></button>
-                          <button onClick={() => decide(true)} aria-label="Add to shortlist" className="w-16 h-16 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center hover:bg-emerald-100 transition-colors shadow-md"><Heart size={28} /></button>
+                          <button onPointerDown={e => e.stopPropagation()} onClick={() => decide(false)} aria-label="Pass" className="w-16 h-16 rounded-full bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-100 transition-colors shadow-md"><X size={28} /></button>
+                          <button onPointerDown={e => e.stopPropagation()} onClick={() => decide(true)} aria-label="Add to shortlist" className="w-16 h-16 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center hover:bg-emerald-100 transition-colors shadow-md"><Heart size={28} /></button>
                         </div>
                       </div>
                     </motion.div>
                   </AnimatePresence>
-                  <button onClick={() => browse(1)} aria-label="Next candidate" className="absolute -right-4 sm:-right-14 z-10 w-11 h-11 rounded-full bg-white/90 text-[#03012d] flex items-center justify-center shadow-lg"><ChevronRight size={20} /></button>
                 </div>
               ) : (
                 <div className={`${glass} p-10 text-center max-w-sm w-full`}>
@@ -3253,6 +3267,7 @@ const searchCatalog = [...jobListings, ...moreJobs].map(j => ({ ...j, ...searchE
 const searchIndustries = Array.from(new Set(searchCatalog.map(j => j.industry))).sort();
 const defaultBenefits = ["HMO coverage from day one", "13th month pay", "Paid time off", "Learning and development budget"];
 const searchFilterDefaults = { types: [] as string[], setups: [] as string[], location: "", salaryMin: 10000, salaryMax: 150000, levels: [] as string[], industry: "", skills: [] as string[] };
+const seekerLocationOptions = ["Calamba, Laguna", "Makati City", "Manila", "Mandaluyong", "Pasig", "Quezon City", "Taguig", "BGC, Taguig", "Remote (Philippines)"];
 const postedLabel = (d: number) => `${d} day${d > 1 ? "s" : ""} ago`;
 
 type SeekerJob = typeof jobListings[number];
@@ -3261,7 +3276,7 @@ const seekerNav = [
   { label: "Home", icon: Home }, { label: "Search", icon: Search }, { label: "Messages", icon: MessageCircle, badge: 3 },
   { label: "Saved Jobs", icon: Bookmark }, { label: "Calendar", icon: CalendarDays }, { label: "Profile", icon: User }, { label: "Settings", icon: Settings },
 ];
-const seekerTabs = [{ label: "For You", icon: Sparkles }, { label: "Remote", icon: Globe }, { label: "On-site", icon: Building2 }, { label: "Hybrid", icon: Monitor }, { label: "Entry Level", icon: Briefcase }];
+const seekerTabs = [{ label: "For You", icon: Sparkles }, { label: "Remote", icon: Globe }, { label: "On-site", icon: Building2 }, { label: "Hybrid", icon: Monitor }];
 const quickTips = ["Complete your profile to get better matches", "Keep your skills up to date", "Be active to get noticed by employers", "Upload your latest resume", "Add certifications to stand out", "Respond to interview invites quickly"];
 const activitySeed = [
   { id: 1, kind: "like", title: "You liked a job", sub: "Business Analyst at Accenture", ago: "2h ago" },
@@ -3312,26 +3327,25 @@ function SeekerCard({ job, score, tier, canLike, onPass, onLike, onDetails }: { 
 }
 
 type SeekerChatMessage = { id: number; from: "employer" | "seeker"; text: string; time: string };
-type SeekerConversation = { id: number; company: string; team: string; role: string; category: "Recruiters" | "Employers" | "System"; color: string; unread: number; preview: string; time: string; messages: SeekerChatMessage[] };
+type SeekerConversation = { id: number; company: string; team: string; role: string; color: string; unread: number; preview: string; time: string; messages: SeekerChatMessage[] };
 
 const seekerConversationSeed: SeekerConversation[] = [
-  { id: 1, company: "Google", team: "Recruitment Team", role: "UI/UX Designer", category: "Recruiters", color: "from-blue-500 to-emerald-400", unread: 2, preview: "Hi Juan! We’d like to schedule an initial interview.", time: "10:24 AM", messages: [
+  { id: 1, company: "Google", team: "Recruitment Team", role: "UI/UX Designer", color: "from-blue-500 to-emerald-400", unread: 2, preview: "Hi Juan! We’d like to schedule an initial interview.", time: "10:24 AM", messages: [
     { id: 1, from: "employer", text: "Hi Juan!\nWe came across your profile and were impressed with your background and skills. We’d like to schedule an initial interview for the UI/UX Designer position. Are you available this week?", time: "10:24 AM" },
     { id: 2, from: "seeker", text: "Hi! Thank you for considering my application. Yes, I’m available this week. Please let me know the possible schedule.", time: "10:24 AM" },
     { id: 3, from: "employer", text: "Great! Here are a few available times for a 30-minute initial interview:\n\n• Sep 29, 2026 · 10:00 AM\n• Sep 29, 2026 · 2:00 PM\n• Sep 30, 2026 · 11:00 AM\n\nPlease let me know which works for you.", time: "10:32 AM" },
     { id: 4, from: "seeker", text: "I’ll go with Sep 29, 2026 · 2:00 PM. Thank you!", time: "10:34 AM" },
   ] },
-  { id: 2, company: "Figma", team: "Talent Acquisition", role: "Product Designer", category: "Recruiters", color: "from-rose-500 to-orange-400", unread: 1, preview: "Thanks for your application! We’d love to learn more.", time: "8:15 AM", messages: [{ id: 1, from: "employer", text: "Thanks for your application! We’d love to learn more about your product design experience. Could you share a portfolio link?", time: "8:15 AM" }] },
-  { id: 3, company: "Notion", team: "HR Team", role: "Product Designer", category: "Employers", color: "from-slate-700 to-slate-400", unread: 0, preview: "Your application has been viewed.", time: "Yesterday", messages: [{ id: 1, from: "employer", text: "Your application has been viewed by our hiring team. We’ll be in touch with next steps soon.", time: "Yesterday" }] },
-  { id: 4, company: "Airbnb", team: "Recruiter", role: "UX Researcher", category: "Recruiters", color: "from-red-500 to-rose-300", unread: 0, preview: "We’re impressed with your profile.", time: "Sep 28", messages: [{ id: 1, from: "employer", text: "We’re impressed with your profile and would like to talk about our UX Researcher opening.", time: "Sep 28" }] },
-  { id: 5, company: "Microsoft", team: "Hiring Team", role: "Business Analyst", category: "Employers", color: "from-sky-500 to-blue-300", unread: 0, preview: "You have a new job match!", time: "Sep 27", messages: [{ id: 1, from: "employer", text: "You have a new job match! Your experience looks relevant to our Business Analyst opening.", time: "Sep 27" }] },
-  { id: 6, company: "Canva", team: "Recruitment Team", role: "UI/UX Designer", category: "Recruiters", color: "from-cyan-500 to-purple-400", unread: 0, preview: "Hi Juan! Are you available for a quick chat?", time: "Sep 26", messages: [{ id: 1, from: "employer", text: "Hi Juan! Are you available for a quick chat about the role?", time: "Sep 26" }] },
-  { id: 7, company: "LinkedIn", team: "Career Opportunities", role: "Multiple roles", category: "System", color: "from-blue-700 to-sky-400", unread: 0, preview: "New job recommendations for you.", time: "Sep 25", messages: [{ id: 1, from: "employer", text: "We found new job recommendations based on your profile and skills.", time: "Sep 25" }] },
+  { id: 2, company: "Figma", team: "Talent Acquisition", role: "Product Designer", color: "from-rose-500 to-orange-400", unread: 1, preview: "Thanks for your application! We’d love to learn more.", time: "8:15 AM", messages: [{ id: 1, from: "employer", text: "Thanks for your application! We’d love to learn more about your product design experience. Could you share a portfolio link?", time: "8:15 AM" }] },
+  { id: 3, company: "Notion", team: "HR Team", role: "Product Designer", color: "from-slate-700 to-slate-400", unread: 0, preview: "Your application has been viewed.", time: "Yesterday", messages: [{ id: 1, from: "employer", text: "Your application has been viewed by our hiring team. We’ll be in touch with next steps soon.", time: "Yesterday" }] },
+  { id: 4, company: "Airbnb", team: "Recruiter", role: "UX Researcher", color: "from-red-500 to-rose-300", unread: 0, preview: "We’re impressed with your profile.", time: "Sep 28", messages: [{ id: 1, from: "employer", text: "We’re impressed with your profile and would like to talk about our UX Researcher opening.", time: "Sep 28" }] },
+  { id: 5, company: "Microsoft", team: "Hiring Team", role: "Business Analyst", color: "from-sky-500 to-blue-300", unread: 0, preview: "You have a new job match!", time: "Sep 27", messages: [{ id: 1, from: "employer", text: "You have a new job match! Your experience looks relevant to our Business Analyst opening.", time: "Sep 27" }] },
+  { id: 6, company: "Canva", team: "Recruitment Team", role: "UI/UX Designer", color: "from-cyan-500 to-purple-400", unread: 0, preview: "Hi Juan! Are you available for a quick chat?", time: "Sep 26", messages: [{ id: 1, from: "employer", text: "Hi Juan! Are you available for a quick chat about the role?", time: "Sep 26" }] },
 ];
 
 function SeekerMessagesPage({ conversations, setConversations }: { conversations: SeekerConversation[]; setConversations: React.Dispatch<React.SetStateAction<SeekerConversation[]>> }) {
   const [activeId, setActiveId] = useState(1);
-  const [filter, setFilter] = useState<"All" | "Recruiters" | "Employers" | "System">("All");
+  const [filter, setFilter] = useState<"All" | "Unread" | "Read">("All");
   const [query, setQuery] = useState("");
   const [draft, setDraft] = useState("");
   const [mobileChatOpen, setMobileChatOpen] = useState(false);
@@ -3339,7 +3353,7 @@ function SeekerMessagesPage({ conversations, setConversations }: { conversations
   const card = "bg-white rounded-2xl shadow-lg border border-[#cdccd5]/50";
   const flash = (message: string) => { setNotice(message); window.setTimeout(() => setNotice(""), 2600); };
   const active = conversations.find(c => c.id === activeId) ?? null;
-  const visible = conversations.filter(c => (filter === "All" || c.category === filter) && (!query.trim() || [c.company, c.team, c.role, c.preview].join(" ").toLowerCase().includes(query.trim().toLowerCase())));
+  const visible = conversations.filter(c => (filter === "All" || (filter === "Unread" ? c.unread > 0 : c.unread === 0)) && (!query.trim() || [c.company, c.team, c.role, c.preview].join(" ").toLowerCase().includes(query.trim().toLowerCase())));
   const openConversation = (id: number) => {
     setActiveId(id);
     setMobileChatOpen(true);
@@ -3360,14 +3374,14 @@ function SeekerMessagesPage({ conversations, setConversations }: { conversations
           <div className="p-4 border-b border-[#cdccd5]/60">
             <div className="flex items-start justify-between"><div><h1 className="text-xl font-extrabold">Messages</h1><p className="text-xs text-[#686781] mt-0.5">Stay connected with recruiters and employers.</p></div><button aria-label="New message" onClick={() => flash("You can message employers after matching with a role.")} className="text-[#686781] hover:text-[#353457]"><Send size={18} /></button></div>
             <div className="flex items-center justify-between gap-1 mt-4 border-b border-[#cdccd5]/60">
-              {(["All", "Recruiters", "Employers", "System"] as const).map(t => <button key={t} onClick={() => setFilter(t)} className={`px-2 pb-2 text-[11px] font-semibold ${filter === t ? "border-b-2 border-[#353457] text-[#353457]" : "text-[#686781]"}`}>{t}</button>)}
+              {(["All", "Unread", "Read"] as const).map(t => <button key={t} onClick={() => setFilter(t)} className={`px-2 pb-2 text-[11px] font-semibold ${filter === t ? "border-b-2 border-[#353457] text-[#353457]" : "text-[#686781]"}`}>{t}<span className="ml-1 text-[10px]">{t === "All" ? conversations.length : conversations.filter(c => t === "Unread" ? c.unread > 0 : c.unread === 0).length}</span></button>)}
             </div>
             <div className="relative mt-3"><Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9a99ab]" /><input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search messages..." className="w-full bg-[#f8f9fa] border border-[#cdccd5] rounded-xl py-2.5 pl-9 pr-3 text-xs focus:outline-none focus:border-[#353457]" /></div>
           </div>
           <ul className="flex-1 min-h-0 overflow-y-auto divide-y divide-[#cdccd5]/40">
             {visible.map(c => <li key={c.id}><button onClick={() => openConversation(c.id)} className={`w-full flex items-center gap-3 p-3 text-left transition-colors ${activeId === c.id ? "bg-[#353457]/10" : "hover:bg-slate-50"}`}>
               <span className={`w-11 h-11 rounded-xl bg-gradient-to-br ${c.color} text-white font-extrabold flex items-center justify-center shrink-0`}>{c.company.charAt(0)}</span>
-              <span className="min-w-0 flex-1"><span className="flex items-center justify-between gap-2"><span className="font-bold text-sm truncate">{c.company}</span><span className="text-[10px] text-[#9a99ab] shrink-0">{c.time}</span></span><span className="block text-[11px] text-[#686781]">{c.team}</span><span className="block text-xs text-[#9a99ab] truncate mt-0.5">{c.preview}</span></span>
+              <span className="min-w-0 flex-1"><span className="flex items-center justify-between gap-2"><span className="font-bold text-sm truncate">{c.company}</span><span className="text-[10px] text-[#9a99ab] shrink-0">{c.time}</span></span><span className="block text-[11px] text-[#686781]">{c.team}</span><span className={`block text-xs truncate mt-0.5 ${c.unread > 0 ? "font-semibold text-[#03012d]" : "text-[#9a99ab]"}`}>{c.preview}</span></span>
               {c.unread > 0 && <span className="w-5 h-5 rounded-full bg-indigo-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0">{c.unread}</span>}
             </button></li>)}
             {visible.length === 0 && <li className="p-6 text-center text-sm text-[#686781]">No conversations found.</li>}
@@ -3381,7 +3395,7 @@ function SeekerMessagesPage({ conversations, setConversations }: { conversations
               <span className={`w-11 h-11 rounded-xl bg-gradient-to-br ${active.color} text-white font-extrabold flex items-center justify-center shrink-0`}>{active.company.charAt(0)}</span>
               <div className="flex-1 min-w-0"><h2 className="font-extrabold truncate">{active.company}</h2><p className="text-xs text-[#686781]">{active.team} · {active.role}</p></div>
               <button onClick={() => flash("Audio calls will be available soon.")} aria-label="Call employer" className="w-9 h-9 rounded-xl border border-[#cdccd5] text-[#686781]"><MessageCircle size={16} /></button>
-              <button onClick={() => flash("Conversation options")} aria-label="More options" className="w-9 h-9 rounded-xl border border-[#cdccd5] text-[#686781]"><ChevronDown size={16} /></button>
+              <button onClick={() => setConversations(prev => prev.map(c => c.id === active.id ? { ...c, unread: c.unread > 0 ? 0 : 1 } : c))} aria-label={active.unread > 0 ? "Mark as read" : "Mark as unread"} title={active.unread > 0 ? "Mark as read" : "Mark as unread"} className="px-3 h-9 rounded-xl border border-[#cdccd5] text-xs font-semibold text-[#686781]">{active.unread > 0 ? "Mark read" : "Mark unread"}</button>
             </header>
             <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4">
               <p className="text-center text-[10px] text-[#9a99ab]">Today, Oct 2, 2026</p>
@@ -3404,10 +3418,10 @@ function SeekerMessagesPage({ conversations, setConversations }: { conversations
   );
 }
 
-function JobSeekerView({ onBack, events, setEvents }: { onBack: () => void; events: CalEvent[]; setEvents: React.Dispatch<React.SetStateAction<CalEvent[]>> }) {
+function JobSeekerView({ userName, onBack, events, setEvents }: { userName: string; onBack: () => void; events: CalEvent[]; setEvents: React.Dispatch<React.SetStateAction<CalEvent[]>> }) {
   const [nav, setNav] = useState("Home");
   const [seekerConversations, setSeekerConversations] = useState(seekerConversationSeed);
-  const [userProfile, setUserProfile] = useState(initialUserProfile);
+  const [userProfile, setUserProfile] = useState({ ...initialUserProfile, name: userName || initialUserProfile.name });
   const [jobs, setJobs] = useState(jobListings);
   const [tab, setTab] = useState("For You");
   const [searchQuery, setSearchQuery] = useState("");
@@ -3437,10 +3451,14 @@ function JobSeekerView({ onBack, events, setEvents }: { onBack: () => void; even
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(true);
   const [currentPlan, setCurrentPlan] = useState("Free");
   const [billingCadence, setBillingCadence] = useState("Monthly");
+  const [seekerCheckout, setSeekerCheckout] = useState<PlanName | null>(null);
+  const [seekerPayment, setSeekerPayment] = useState({ number: "", name: "", expiry: "", cvc: "" });
+  const [seekerPaymentLast4, setSeekerPaymentLast4] = useState("");
   const [deleteAccountArmed, setDeleteAccountArmed] = useState(false);
   const [settingsHelpQuery, setSettingsHelpQuery] = useState("");
   const [feedbackText, setFeedbackText] = useState("");
   const [sf, setSf] = useState(searchFilterDefaults);
+  const [pinnedLocation, setPinnedLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [sortBy, setSortBy] = useState("relevant");
   const [selSearch, setSelSearch] = useState<number | null>(null);
   const [sTab, setSTab] = useState("Overview");
@@ -3449,6 +3467,15 @@ function JobSeekerView({ onBack, events, setEvents }: { onBack: () => void; even
   const [sfSkill, setSfSkill] = useState("");
 
   const flash = (msg: string) => { setNotice(msg); setTimeout(() => setNotice(""), 2800); };
+  const closeSeekerCheckout = () => { setSeekerCheckout(null); setSeekerPayment({ number: "", name: "", expiry: "", cvc: "" }); };
+  const pinCurrentLocation = () => {
+    if (!navigator.geolocation) return flash("Location detection is not supported in this browser.");
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => { setPinnedLocation({ latitude: coords.latitude, longitude: coords.longitude }); flash("Your current location is pinned."); },
+      () => flash("Location permission was unavailable or denied."),
+      { enableHighAccuracy: true, timeout: 10000 },
+    );
+  };
   const logActivity = (kind: string, title: string, sub: string) => setActivity(prev => [{ id: Date.now(), kind, title, sub, ago: "Just now" }, ...prev]);
   const removeJob = (id: number) => setJobs(prev => prev.filter(j => j.id !== id));
   const matchOf = (job: SeekerJob) => calculateMatch(userProfile, job);
@@ -3458,7 +3485,6 @@ function JobSeekerView({ onBack, events, setEvents }: { onBack: () => void; even
     if (tab === "Remote" && j.workSetup !== "Remote") return false;
     if (tab === "On-site" && j.workSetup !== "On-site") return false;
     if (tab === "Hybrid" && j.workSetup !== "Hybrid") return false;
-    if (tab === "Entry Level" && j.level !== "Entry") return false;
     if (calculateMatch(userProfile, j).score < minMatch) return false;
     return !q || [j.title, j.company, ...j.reqSkills].join(" ").toLowerCase().includes(q);
   }).sort((a, b) => calculateMatch(userProfile, b).score - calculateMatch(userProfile, a).score), [jobs, tab, q, minMatch, userProfile]);
@@ -3498,7 +3524,7 @@ function JobSeekerView({ onBack, events, setEvents }: { onBack: () => void; even
     if (q && ![j.title, j.company, j.industry, ...j.reqSkills].join(" ").toLowerCase().includes(q)) return false;
     if (sf.types.length && !sf.types.includes(j.jobType)) return false;
     if (sf.setups.length && !sf.setups.includes(j.workSetup)) return false;
-    if (sf.location.trim() && !j.location.toLowerCase().includes(sf.location.trim().toLowerCase())) return false;
+    if (sf.location.trim() && sf.location !== "Pinned location" && !j.location.toLowerCase().includes(sf.location.trim().toLowerCase())) return false;
     if (j.salaryMax < sf.salaryMin || j.salaryMin > sf.salaryMax) return false;
     if (sf.levels.length && !sf.levels.map(l => l.replace(" Level", "")).includes(j.level)) return false;
     if (sf.industry && j.industry !== sf.industry) return false;
@@ -3561,7 +3587,7 @@ function JobSeekerView({ onBack, events, setEvents }: { onBack: () => void; even
             </button>
           ); })}
         </nav>
-        <div className="mt-auto rounded-2xl bg-white/10 border border-white/10 p-4 cursor-pointer hover:bg-white/15" role="button" tabIndex={0} onClick={() => flash("Pro Job Seeker plans are coming soon")}>
+        <div className="mt-auto rounded-2xl bg-white/10 border border-white/10 p-4 cursor-pointer hover:bg-white/15" role="button" tabIndex={0} onClick={() => { setSettingsTab("Subscription"); setNav("Settings"); }} onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSettingsTab("Subscription"); setNav("Settings"); } }}>
           <Crown size={22} className="text-amber-300 mb-2" /><p className="font-bold text-sm">Upgrade to Pro Job Seeker</p><p className="text-xs text-[#cdccd5] mt-1">Get more matches, exclusive opportunities, and advanced insights.</p>
         </div>
         <button onClick={onBack} className="mt-4 text-sm text-[#cdccd5] hover:text-white text-left px-2">&larr; Log Out</button>
@@ -3602,6 +3628,7 @@ function JobSeekerView({ onBack, events, setEvents }: { onBack: () => void; even
                   <h1 className="text-3xl font-extrabold">Hi, {firstName}!</h1>
                   <p className="text-xl font-extrabold">Swipe. Match. Get Hired.</p>
                   <p className="text-sm text-[#686781] mt-1 max-w-sm">Discover job opportunities that match your skills, experience, and career goals.</p>
+                  <p className="text-xs font-semibold text-[#353457] mt-1">Swipe left to pass or right to like.</p>
                 </div>
                 <div className={`${card} p-4 flex items-center gap-4`}>
                   <div className="relative w-16 h-16 shrink-0">
@@ -3671,25 +3698,27 @@ function JobSeekerView({ onBack, events, setEvents }: { onBack: () => void; even
           <main className="flex-1 grid xl:grid-cols-[250px_minmax(0,1fr)_390px] gap-4 p-4 lg:px-6 lg:pb-6 overflow-y-auto items-start">
             {/* FILTERS */}
             <aside className={`${card} p-5 space-y-5`}>
-              <div className="flex items-center justify-between"><h2 className="font-extrabold">Filters</h2><button onClick={() => { setSf(searchFilterDefaults); setSearchQuery(""); }} className="text-xs font-semibold text-[#353457] hover:underline">Clear All</button></div>
+              <div className="flex items-center justify-between"><h2 className="font-extrabold">Filters</h2><button onClick={() => { setSf(searchFilterDefaults); setPinnedLocation(null); setSearchQuery(""); }} className="text-xs font-semibold text-[#353457] hover:underline">Clear All</button></div>
               <div>
                 <p className="text-sm font-bold mb-1.5">Job Type</p>
                 {["Full-time", "Part-time", "Contract", "Internship"].map(t => <label key={t} className="flex items-center gap-2 text-sm py-1 text-[#686781]"><input type="checkbox" checked={sf.types.includes(t)} onChange={() => setSf(prev => ({ ...prev, types: toggleIn(prev.types, t) }))} /> {t}</label>)}
               </div>
               <div>
                 <p className="text-sm font-bold mb-1.5">Location</p>
-                <div className="relative mb-1.5"><MapPin size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9a99ab]" /><input value={sf.location} onChange={(e) => setSf(prev => ({ ...prev, location: e.target.value }))} placeholder="City or area" className="w-full pl-8 pr-8 py-2 border border-[#cdccd5] rounded-lg text-sm focus:outline-none focus:border-[#353457]" />{sf.location && <button onClick={() => setSf(prev => ({ ...prev, location: "" }))} aria-label="Clear location" className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#9a99ab]"><X size={14} /></button>}</div>
+                <div className="relative mb-1.5"><MapPin size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9a99ab]" /><select value={sf.location} onChange={e => setSf(prev => ({ ...prev, location: e.target.value }))} className="w-full bg-white pl-8 pr-8 py-2 border border-[#cdccd5] rounded-lg text-sm focus:outline-none focus:border-[#353457]" aria-label="Choose job location"><option value="">All locations</option>{seekerLocationOptions.map(location => <option key={location} value={location}>{location}</option>)}</select>{sf.location && <button onClick={() => setSf(prev => ({ ...prev, location: "" }))} aria-label="Clear location" className="absolute right-8 top-1/2 -translate-y-1/2 text-[#9a99ab]"><X size={14} /></button>}</div>
+                <button type="button" onClick={pinCurrentLocation} className="mb-2 flex w-full items-center justify-center gap-2 rounded-lg border border-[#cdccd5] px-3 py-2 text-xs font-semibold text-[#353457] hover:bg-indigo-50"><MapPin size={14} /> Pin my current location</button>
+                {pinnedLocation && <p className="mb-2 rounded-lg bg-indigo-50 px-2.5 py-2 text-[10px] text-indigo-800"><MapPin size={12} className="mr-1 inline" />Pinned: {pinnedLocation.latitude.toFixed(5)}, {pinnedLocation.longitude.toFixed(5)}<a className="ml-2 font-bold underline" target="_blank" rel="noreferrer" href={`https://www.google.com/maps/search/?api=1&query=${pinnedLocation.latitude},${pinnedLocation.longitude}`}>View in Google Maps</a></p>}
                 {["Remote", "Hybrid", "On-site"].map(t => <label key={t} className="flex items-center gap-2 text-sm py-1 text-[#686781]"><input type="checkbox" checked={sf.setups.includes(t)} onChange={() => setSf(prev => ({ ...prev, setups: toggleIn(prev.setups, t) }))} /> {t}</label>)}
               </div>
               <div>
                 <p className="text-sm font-bold mb-1">Salary Range <span className="font-normal text-[#686781]">(per month)</span></p>
                 <p className="text-xs text-[#353457] font-semibold mb-2">{peso(sf.salaryMin)} &ndash; {peso(sf.salaryMax)}{sf.salaryMax >= 150000 ? "+" : ""}</p>
-                <label className="block text-[11px] text-[#9a99ab]">Minimum<input type="range" min={10000} max={150000} step={5000} value={sf.salaryMin} onChange={(e) => { const v = Number(e.target.value); setSf(prev => ({ ...prev, salaryMin: v, salaryMax: Math.max(prev.salaryMax, v) })); }} className="w-full" aria-label="Minimum salary" /></label>
-                <label className="block text-[11px] text-[#9a99ab] mt-1">Maximum<input type="range" min={10000} max={150000} step={5000} value={sf.salaryMax} onChange={(e) => { const v = Number(e.target.value); setSf(prev => ({ ...prev, salaryMax: v, salaryMin: Math.min(prev.salaryMin, v) })); }} className="w-full" aria-label="Maximum salary" /></label>
+                <label className="block text-[11px] text-[#9a99ab]">Minimum<input type="range" min={10000} max={150000} step={5000} value={sf.salaryMin} onChange={(e) => { const v = Number(e.target.value); setSf(prev => ({ ...prev, salaryMin: v, salaryMax: Math.max(prev.salaryMax, v) })); }} className="w-full h-8 cursor-pointer touch-pan-y accent-[#353457]" aria-label="Minimum salary" /></label>
+                <label className="block text-[11px] text-[#9a99ab] mt-1">Maximum<input type="range" min={10000} max={150000} step={5000} value={sf.salaryMax} onChange={(e) => { const v = Number(e.target.value); setSf(prev => ({ ...prev, salaryMax: v, salaryMin: Math.min(prev.salaryMin, v) })); }} className="w-full h-8 cursor-pointer touch-pan-y accent-[#353457]" aria-label="Maximum salary" /></label>
               </div>
               <div>
                 <p className="text-sm font-bold mb-1.5">Experience Level</p>
-                {["Entry Level", "Mid Level", "Senior Level", "Executive"].map(t => <label key={t} className="flex items-center gap-2 text-sm py-1 text-[#686781]"><input type="checkbox" checked={sf.levels.includes(t)} onChange={() => setSf(prev => ({ ...prev, levels: toggleIn(prev.levels, t) }))} /> {t}</label>)}
+                {["Entry Level", "Mid Level", "Senior Level", "Executive"].map(t => <label key={t} className="flex items-center gap-2 text-sm py-1 text-[#686781]"><input type="radio" name="seeker-experience-level" checked={sf.levels[0] === t} onChange={() => setSf(prev => ({ ...prev, levels: [t] }))} /> {t}</label>)}
               </div>
               <div>
                 <p className="text-sm font-bold mb-1.5">Industry</p>
@@ -3710,7 +3739,7 @@ function JobSeekerView({ onBack, events, setEvents }: { onBack: () => void; even
                 <label className="flex items-center gap-2 text-xs text-[#686781] shrink-0">Sort by<select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="border border-[#cdccd5] rounded-lg px-2 py-1.5 text-sm text-[#03012d] bg-white focus:outline-none"><option value="relevant">Most Relevant</option><option value="newest">Newest</option><option value="salary">Highest Salary</option></select></label>
               </div>
               {searchResults.length === 0 ? (
-                <div className="border border-dashed border-[#cdccd5] rounded-xl p-8 text-center"><p className="font-bold">No jobs found</p><p className="text-sm text-[#686781] mt-1">Try removing a filter or searching different keywords.</p><button onClick={() => { setSf(searchFilterDefaults); setSearchQuery(""); }} className="mt-3 px-4 py-2 rounded-lg bg-[#353457] text-white text-xs font-bold">Clear all filters</button></div>
+                <div className="border border-dashed border-[#cdccd5] rounded-xl p-8 text-center"><p className="font-bold">No jobs found</p><p className="text-sm text-[#686781] mt-1">Try removing a filter or searching different keywords.</p><button onClick={() => { setSf(searchFilterDefaults); setPinnedLocation(null); setSearchQuery(""); }} className="mt-3 px-4 py-2 rounded-lg bg-[#353457] text-white text-xs font-bold">Clear all filters</button></div>
               ) : (
                 <ul className="space-y-2 xl:max-h-[calc(100vh-14rem)] overflow-y-auto pr-1">
                   {searchResults.map(j => { const m = calculateMatch(userProfile, j); const isSaved = saved.some(x => x.id === j.id); return (
@@ -3918,10 +3947,10 @@ function JobSeekerView({ onBack, events, setEvents }: { onBack: () => void; even
               {settingsTab === "Subscription" && <section className={card + " p-5"}>
                 <div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-xl font-extrabold flex items-center gap-2"><CreditCard size={20} /> Subscription & Billing</h2><p className="text-sm text-[#686781] mt-1">Manage your plan and unlock more career tools.</p></div><span className="px-3 py-2 rounded-lg bg-indigo-50 text-indigo-800 text-xs font-bold">Current Plan: {currentPlan}</span></div>
                 <div className="flex flex-wrap items-center justify-between gap-3 mt-5 mb-4"><div><h3 className="font-bold">Choose a Plan</h3><p className="text-xs text-[#686781]">Upgrade or downgrade anytime to find the right level of support.</p></div><div className="flex items-center gap-2"><span className="text-[10px] font-bold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">Save 20%</span><div className="flex bg-[#f1f1f5] rounded-full p-1">{["Monthly", "Yearly"].map(c => <button key={c} onClick={() => setBillingCadence(c)} aria-pressed={billingCadence === c} className={"px-4 py-1.5 rounded-full text-xs font-bold transition-colors " + (billingCadence === c ? "bg-[#353457] text-white" : "text-[#686781]")}>{c}</button>)}</div></div></div>
-                <div className="grid md:grid-cols-3 gap-3 pt-2">{planOrder.map(name => { const d = planData[name]; const current = currentPlan === name; const popular = name === "Pro"; const higher = planOrder.indexOf(name) > planOrder.indexOf(currentPlan as PlanName); return <div key={name} className={"relative rounded-2xl border p-4 flex flex-col " + (popular ? "border-[#353457] ring-2 ring-[#353457]/20" : "border-[#cdccd5]/70")}>{popular && <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#353457] text-white text-[11px] font-bold px-3 py-1 rounded-full whitespace-nowrap">Most Popular</span>}<h3 className="font-extrabold">{name}</h3><p className="text-xs text-[#686781]">{d.tagline}</p><p className="mt-3"><span className="text-2xl font-extrabold">{peso(planMonthly(name, billingCadence))}</span><span className="text-xs text-[#686781]"> / month</span></p>{billingCadence === "Yearly" && d.price > 0 && <p className="text-[11px] text-[#9a99ab]">Billed {peso(planCost(name, "Yearly"))} yearly</p>}<ul className="mt-3 space-y-1.5 text-xs flex-1">{(name === "Free" ? ["Create a complete profile", "Search and apply to jobs", "Basic job matches", "Basic notifications"] : name === "Pro" ? ["Everything in Free", "See who viewed your profile", "Priority in search results", "Advanced match insights", "Application tracking", "Resume insights and tips"] : ["Everything in Pro", "Early access to new job postings", "Detailed profile analytics", "AI-powered resume review", "Career coaching resources", "Exclusive webinars and events"]).map(f => <li key={f} className="flex gap-2"><span className="text-[#353457] font-bold">✓</span>{f}</li>)}</ul><button disabled={current} onClick={() => { setCurrentPlan(name); flash(name + " plan selected"); }} className={"mt-4 w-full py-2.5 rounded-xl text-sm font-bold transition-colors " + (current ? "border border-[#cdccd5] text-[#9a99ab] cursor-default" : popular ? "bg-[#353457] text-white hover:bg-[#03012d]" : "border border-[#353457] text-[#353457] hover:bg-[#353457]/10")}>{current ? "Current Plan" : name === "Free" ? "Downgrade to Free" : higher ? "Upgrade to " + name : "Switch to " + name}</button></div>; })}</div>
-                <div className="border border-[#cdccd5]/60 rounded-2xl p-4 mt-4"><div className="flex flex-wrap items-start justify-between gap-3 mb-3"><div><h3 className="font-bold flex items-center gap-2"><CreditCard size={18} /> Current Plan Details</h3><p className="text-xs text-[#686781]">Your current tier and billing selection.</p></div><button onClick={() => flash("Billing and payment are not connected in this prototype.")} className="px-4 py-2 rounded-lg bg-[#f1f1f5] text-[#353457] text-xs font-semibold">Billing & Payment</button></div><div className="grid sm:grid-cols-3 gap-3 text-sm"><div><span className="block text-xs text-[#686781]">Plan</span><b>{currentPlan} Plan</b></div><div><span className="block text-xs text-[#686781]">Billing Cycle</span><b>{currentPlan === "Free" ? "No billing required" : billingCadence}</b></div><div><span className="block text-xs text-[#686781]">Price</span><b>{peso(planMonthly(currentPlan as PlanName, billingCadence))} / month</b></div></div></div>
+                <div className="grid md:grid-cols-3 gap-3 pt-2">{planOrder.map(name => { const d = planData[name]; const current = currentPlan === name; const popular = name === "Pro"; const higher = planOrder.indexOf(name) > planOrder.indexOf(currentPlan as PlanName); const tierStyle = name === "Free" ? "border-slate-200 bg-white" : name === "Pro" ? "border-indigo-500 bg-indigo-50/30 ring-2 ring-indigo-200" : "border-amber-400 bg-amber-50/40"; return <div key={name} className={"relative rounded-2xl border p-4 flex flex-col " + tierStyle}>{popular && <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#353457] text-white text-[11px] font-bold px-3 py-1 rounded-full whitespace-nowrap">Most Popular</span>}<h3 className="font-extrabold">{name}</h3><p className="text-xs text-[#686781]">{d.tagline}</p><p className="mt-3"><span className="text-2xl font-extrabold">{peso(planMonthly(name, billingCadence))}</span><span className="text-xs text-[#686781]"> / month</span></p>{billingCadence === "Yearly" && d.price > 0 && <p className="text-[11px] text-[#9a99ab]">Billed {peso(planCost(name, "Yearly"))} yearly</p>}<ul className="mt-3 space-y-1.5 text-xs flex-1">{(name === "Free" ? ["Create a complete profile", "Search and apply to jobs", "Basic job matches", "Basic notifications"] : name === "Pro" ? ["Everything in Free", "See who viewed your profile", "Priority in search results", "Advanced match insights", "Application tracking", "Resume insights and tips"] : ["Everything in Pro", "Early access to new job postings", "Detailed profile analytics", "AI-powered resume review", "Career coaching resources", "Exclusive webinars and events"]).map(f => <li key={f} className="flex gap-2"><span className="text-[#353457] font-bold">✓</span>{f}</li>)}</ul><button disabled={current} onClick={() => { if (name === "Free") { setCurrentPlan(name); flash("Switched to Free plan."); } else setSeekerCheckout(name); }} className={"mt-4 w-full py-2.5 rounded-xl text-sm font-bold transition-colors " + (current ? "border border-[#cdccd5] text-[#9a99ab] cursor-default" : popular ? "bg-[#353457] text-white hover:bg-[#03012d]" : "border border-[#353457] text-[#353457] hover:bg-[#353457]/10")}>{current ? "Current Plan" : name === "Free" ? "Downgrade to Free" : higher ? "Upgrade to " + name : "Switch to " + name}</button></div>; })}</div>
+                <div className="border border-[#cdccd5]/60 rounded-2xl p-4 mt-4"><div className="flex flex-wrap items-start justify-between gap-3 mb-3"><div><h3 className="font-bold flex items-center gap-2"><CreditCard size={18} /> Current Plan Details</h3><p className="text-xs text-[#686781]">Your current tier and billing selection.</p></div><button onClick={() => currentPlan === "Free" ? flash("The Free plan does not need billing.") : setSeekerCheckout(currentPlan as PlanName)} className="px-4 py-2 rounded-lg bg-[#f1f1f5] text-[#353457] text-xs font-semibold">Billing & Payment</button></div><div className="grid sm:grid-cols-3 gap-3 text-sm"><div><span className="block text-xs text-[#686781]">Plan</span><b>{currentPlan} Plan</b></div><div><span className="block text-xs text-[#686781]">Billing Cycle</span><b>{currentPlan === "Free" ? "No billing required" : billingCadence}</b></div><div><span className="block text-xs text-[#686781]">Price</span><b>{peso(planMonthly(currentPlan as PlanName, billingCadence))} / month</b></div></div></div>
               </section>}
-              {settingsTab === "Language & Region" && <section className={card + " p-5"}>
+              {seekerCheckout && <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[#03012d]/70 p-4" onClick={closeSeekerCheckout}><section role="dialog" aria-modal="true" aria-labelledby="seeker-checkout-title" onClick={e => e.stopPropagation()} className="relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6 text-[#03012d] shadow-2xl"><button onClick={closeSeekerCheckout} aria-label="Close checkout" className="absolute right-4 top-4 text-[#686781]"><X size={20} /></button><h2 id="seeker-checkout-title" className="text-xl font-extrabold">Upgrade to {seekerCheckout}</h2><p className="mt-1 text-sm text-[#686781]">Review your plan and billing cycle.</p><div className="mt-4 flex w-fit rounded-full bg-slate-100 p-1">{["Monthly", "Yearly"].map(c => <button key={c} onClick={() => setBillingCadence(c)} className={"rounded-full px-4 py-2 text-xs font-bold " + (billingCadence === c ? "bg-[#353457] text-white" : "text-[#686781]")}>{c}{c === "Yearly" ? " · Save 20%" : ""}</button>)}</div><div className="mt-4 space-y-2 rounded-xl border border-[#cdccd5] p-4 text-sm"><p className="flex justify-between"><span className="text-[#686781]">Plan</span><b>{seekerCheckout}</b></p><p className="flex justify-between"><span className="text-[#686781]">Billing cycle</span><b>{billingCadence}</b></p><p className="flex justify-between border-t border-[#cdccd5]/60 pt-2"><span className="font-bold">Due today (demo)</span><b>{peso(planCost(seekerCheckout, billingCadence))}</b></p></div>{seekerPaymentLast4 ? <div className="mt-4 rounded-xl bg-indigo-50 p-3 text-sm"><b className="block">Saved payment method</b><span className="text-[#686781]">Card ending in •••• {seekerPaymentLast4}</span></div> : <div className="mt-4 space-y-3"><label className="block text-xs font-semibold">Card number<input inputMode="numeric" autoComplete="off" value={seekerPayment.number} onChange={e => setSeekerPayment(prev => ({ ...prev, number: e.target.value.replace(/\D/g, "").slice(0, 19).replace(/(.{4})/g, "$1 ").trim() }))} placeholder="4242 4242 4242 4242" className="mt-1 w-full rounded-lg border border-[#cdccd5] px-3 py-2.5 text-sm font-normal" /></label><label className="block text-xs font-semibold">Name on card<input value={seekerPayment.name} onChange={e => setSeekerPayment(prev => ({ ...prev, name: e.target.value }))} className="mt-1 w-full rounded-lg border border-[#cdccd5] px-3 py-2.5 text-sm font-normal" /></label><div className="grid grid-cols-2 gap-3"><label className="block text-xs font-semibold">Expiry (MM/YY)<input inputMode="numeric" value={seekerPayment.expiry} onChange={e => { const digits = e.target.value.replace(/\D/g, "").slice(0, 4); setSeekerPayment(prev => ({ ...prev, expiry: digits.length > 2 ? `${digits.slice(0, 2)}/${digits.slice(2)}` : digits })); }} placeholder="08/29" className="mt-1 w-full rounded-lg border border-[#cdccd5] px-3 py-2.5 text-sm font-normal" /></label><label className="block text-xs font-semibold">CVC<input inputMode="numeric" autoComplete="off" type="password" value={seekerPayment.cvc} onChange={e => setSeekerPayment(prev => ({ ...prev, cvc: e.target.value.replace(/\D/g, "").slice(0, 4) }))} placeholder="123" className="mt-1 w-full rounded-lg border border-[#cdccd5] px-3 py-2.5 text-sm font-normal" /></label></div></div>}<p className="mt-3 text-xs text-[#686781]">Demo checkout only. Use test card details only; do not enter a real card. No real charge is processed. Live payments need a payment provider.</p><div className="mt-5 grid grid-cols-2 gap-3"><button onClick={closeSeekerCheckout} className="rounded-xl border border-[#cdccd5] py-3 text-sm font-semibold">Cancel</button><button onClick={() => { const digits = seekerPayment.number.replace(/\D/g, ""); const expiryMatch = /^(0[1-9]|1[0-2])\/(\d{2})$/.exec(seekerPayment.expiry); if (!seekerPaymentLast4 && (!luhnOk(digits) || !seekerPayment.name.trim() || !expiryMatch || new Date(2000 + Number(expiryMatch[2]), Number(expiryMatch[1]), 0, 23, 59) < new Date() || !/^\d{3,4}$/.test(seekerPayment.cvc))) { flash("Enter valid card details to continue."); return; } if (!seekerPaymentLast4) setSeekerPaymentLast4(digits.slice(-4)); setCurrentPlan(seekerCheckout); setSeekerPayment({ number: "", name: "", expiry: "", cvc: "" }); setSeekerCheckout(null); flash(seekerCheckout + " plan activated for this demo. No payment was processed."); }} className="rounded-xl bg-[#353457] py-3 text-sm font-bold text-white hover:bg-[#03012d]">Confirm demo upgrade</button></div></section></div>}{settingsTab === "Language & Region" && <section className={card + " p-5"}>
                 <h2 className="text-xl font-extrabold">Language & Region</h2><p className="text-sm text-[#686781] mt-1 mb-4">Choose your preferred language, country, and regional settings.</p>
                 <div className="space-y-4">
                   <label className="block p-4 rounded-xl border border-[#cdccd5]/60"><b className="block text-sm">App Language</b><span className="text-xs text-[#686781]">This changes the language used throughout the app.</span><select value={settingsInfo.language} onChange={e => setSettingsInfo(prev => ({ ...prev, language: e.target.value }))} className="block mt-3 w-full sm:w-2/3 px-3 py-2.5 rounded-lg border border-[#cdccd5] text-sm"><option>English</option><option>Filipino</option><option>日本語</option><option>한국어</option></select></label>
