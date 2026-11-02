@@ -1295,6 +1295,20 @@ function EmployerView({ onBack, events, setEvents }: { onBack: () => void; event
           </div>
         </header>
 
+        <nav aria-label="Employer pages" className="lg:hidden flex gap-2 overflow-x-auto overscroll-x-contain touch-pan-x snap-x snap-mandatory px-4 pb-3 [scrollbar-width:thin]">
+          {NAV_ITEMS.map(item => {
+            const Icon = item.icon;
+            const active = activeNav === item.label;
+            return (
+              <button key={item.label} onClick={() => { if (item.label === "Settings") setAcctDraft(company); setActiveNav(item.label); }} aria-current={active ? "page" : undefined} className={`shrink-0 snap-start flex items-center gap-2 rounded-full border px-5 py-2.5 text-sm font-semibold whitespace-nowrap transition-colors ${active ? "border-white bg-white text-[#03012d]" : "border-white/30 bg-white/5 text-[#e5e4ef] hover:bg-white/15"}`}>
+                <Icon size={16} />
+                {item.label}
+                {item.label === "Messages" && totalUnread > 0 && <span className={`flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[11px] font-bold ${active ? "bg-[#353457] text-white" : "bg-white/20 text-white"}`}>{totalUnread}</span>}
+              </button>
+            );
+          })}
+        </nav>
+
         {activeNav === "Settings" ? (
           <main className="flex-1 overflow-y-auto p-4 lg:px-6 lg:pb-6">
             <input ref={logoRef} type="file" accept="image/*" className="hidden" onChange={(e) => { pickImage(e.target.files?.[0], setLogoUrl); e.target.value = ""; }} />
