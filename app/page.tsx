@@ -117,7 +117,7 @@ function LandingPage({ onProceed }: { onProceed: (role: 'seeker' | 'employer') =
   const [selectedRole, setSelectedRole] = useState<'seeker' | 'employer' | null>(null);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 relative text-slate-800">
+    <div className="min-h-[100dvh] flex flex-col items-center justify-center px-4 py-6 sm:p-6 relative text-slate-800">
       <WhiteBackground />
       
       <div className="z-10 flex flex-col items-center w-full max-w-4xl pt-6">
@@ -193,24 +193,21 @@ function LandingPage({ onProceed }: { onProceed: (role: 'seeker' | 'employer') =
 
         </div>
 
-        {/* Proceed Button */}
-        <button
-          disabled={!selectedRole}
-          onClick={() => selectedRole && onProceed(selectedRole)}
-          className={`px-12 py-4 rounded-full font-bold shadow-lg transition-all text-sm tracking-wide ${
-            selectedRole 
-              ? 'bg-[#03012d] text-white hover:bg-[#353457] shadow-xl' 
-              : 'bg-slate-200 text-slate-400 cursor-not-allowed'
-          }`}
-        >
-          Proceed to Access
-        </button>
-      </div>
-
-      {/* Footer */}
-      <div className="absolute bottom-6 flex gap-8 text-sm text-slate-400 z-10 font-medium">
-        <button className="hover:text-slate-700 transition-colors">Contact Us</button>
-        <button className="hover:text-slate-700 transition-colors">FAQ</button>
+        <div className="z-10 mt-2 flex w-full flex-wrap items-center justify-center gap-x-6 gap-y-3">
+          <button
+            disabled={!selectedRole}
+            onClick={() => selectedRole && onProceed(selectedRole)}
+            className={`px-8 py-3.5 rounded-full font-bold shadow-lg transition-all text-sm tracking-wide ${
+              selectedRole
+                ? 'bg-[#03012d] text-white hover:bg-[#353457] shadow-xl'
+                : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+            }`}
+          >
+            Proceed to Access
+          </button>
+          <button className="px-1 py-2 text-sm text-slate-500 font-medium hover:text-slate-700 transition-colors">Contact Us</button>
+          <button className="px-1 py-2 text-sm text-slate-500 font-medium hover:text-slate-700 transition-colors">FAQ</button>
+        </div>
       </div>
     </div>
   );
@@ -545,6 +542,7 @@ const planData = {
 };
 type PlanName = keyof typeof planData;
 const planOrder: PlanName[] = ["Free", "Pro", "Business"];
+const FREE_SWIPE_LIMIT = 5;
 const peso = (n: number) => `\u20B1${n.toLocaleString("en-PH")}`;
 const planCost = (name: PlanName, cycle: string) => cycle === "Yearly" ? Math.round(planData[name].price * 12 * 0.8) : planData[name].price;
 const planMonthly = (name: PlanName, cycle: string) => cycle === "Yearly" ? Math.round(planData[name].price * 0.8) : planData[name].price;
@@ -661,6 +659,9 @@ function EmployerView({ onBack, events, setEvents }: { onBack: () => void; event
   const [activeNav, setActiveNav] = useState("Home");
   const [deck, setDeck] = useState(employerCandidates);
   const [deckPos, setDeckPos] = useState(0);
+  const pinchGesture = useRef(false);
+  const [candidateSwipesUsed, setCandidateSwipesUsed] = useState(0);
+  const [showEmployerSwipeUpsell, setShowEmployerSwipeUpsell] = useState(false);
   const [shortlisted, setShortlisted] = useState<number[]>([]);
   const [notice, setNotice] = useState("");
   const [query, setQuery] = useState("");
@@ -1213,6 +1214,10 @@ function EmployerView({ onBack, events, setEvents }: { onBack: () => void; event
 
   const decide = (liked: boolean) => {
     if (!current) return;
+    if (subPlan === "Free" && candidateSwipesUsed >= FREE_SWIPE_LIMIT) {
+      setShowEmployerSwipeUpsell(true);
+      return;
+    }
     setDeck(prev => prev.filter(c => c.id !== current.id));
     if (liked) {
       setShortlisted(prev => [...prev, current.id]);
@@ -1220,6 +1225,7 @@ function EmployerView({ onBack, events, setEvents }: { onBack: () => void; event
     }
     setNotice(liked ? `${current.name} added to your shortlist` : `${current.name} passed`);
     setTimeout(() => setNotice(""), 2500);
+    if (subPlan === "Free") setCandidateSwipesUsed(count => count + 1);
   };
 
   const stats = [
@@ -2792,6 +2798,7 @@ function EmployerView({ onBack, events, setEvents }: { onBack: () => void; event
               <div className="w-full mb-4">
                 <h1 className="text-2xl lg:text-3xl font-extrabold">Good day, {companyName}!</h1>
                 <p className="text-[#cdccd5] text-sm mt-1">Swipe left to pass or right to shortlist. You can also use the buttons below.</p>
+                {subPlan === "Free" && <p className="text-amber-200 text-xs font-semibold mt-2">Free swipes used: {candidateSwipesUsed}/{FREE_SWIPE_LIMIT}</p>}
               </div>
 
               {current ? (
@@ -2804,13 +2811,17 @@ function EmployerView({ onBack, events, setEvents }: { onBack: () => void; event
                       exit={{ opacity: 0, x: -40 }}
                       transition={{ duration: 0.2 }}
                       className="w-full touch-pan-y cursor-grab active:cursor-grabbing bg-white rounded-3xl shadow-2xl overflow-hidden text-[#03012d]"
+                      style={{ touchAction: "pan-y pinch-zoom" }}
                       drag="x"
                       dragDirectionLock
                       dragMomentum={false}
                       dragSnapToOrigin
                       dragConstraints={{ left: -220, right: 220 }}
                       dragElastic={0.6}
+                      onPointerDownCapture={event => { if (event.pointerType === "touch" && event.isPrimary === false) pinchGesture.current = true; else if (event.pointerType === "touch") pinchGesture.current = false; }}
+                      onTouchStartCapture={event => { pinchGesture.current = event.touches.length > 1; }}
                       onDragEnd={(_, info) => {
+                        if (pinchGesture.current) { pinchGesture.current = false; return; }
                         const pass = info.offset.x < -65 || (info.offset.x < -25 && info.velocity.x < -450);
                         const shortlist = info.offset.x > 65 || (info.offset.x > 25 && info.velocity.x > 450);
                         if (pass) decide(false);
@@ -3235,6 +3246,7 @@ function EmployerView({ onBack, events, setEvents }: { onBack: () => void; event
         </div>
       )}
 
+      {showEmployerSwipeUpsell && <div className="fixed inset-0 z-[70] flex items-center justify-center bg-[#03012d]/75 p-4" onClick={() => setShowEmployerSwipeUpsell(false)}><section role="dialog" aria-modal="true" aria-labelledby="employer-swipe-upsell-title" onClick={e => e.stopPropagation()} className="w-full max-w-md rounded-3xl bg-white p-6 text-[#03012d] shadow-2xl"><div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-100 text-amber-600"><Crown size={28} /></div><h2 id="employer-swipe-upsell-title" className="mt-4 text-center text-2xl font-extrabold">Keep finding great candidates</h2><p className="mt-2 text-center text-sm text-[#686781]">You used all {FREE_SWIPE_LIMIT} free candidate swipes in this demo. Upgrade to keep reviewing and shortlisting candidates.</p><div className="mt-5 grid gap-3 sm:grid-cols-2"><button onClick={() => { setShowEmployerSwipeUpsell(false); openCheckout("Pro"); }} className="rounded-xl bg-[#353457] px-4 py-3 text-sm font-bold text-white hover:bg-[#03012d]">Upgrade to Pro · {peso(planMonthly("Pro", billCycle))}/mo</button><button onClick={() => { setShowEmployerSwipeUpsell(false); openCheckout("Business"); }} className="rounded-xl border border-amber-400 bg-amber-50 px-4 py-3 text-sm font-bold text-[#353457] hover:bg-amber-100">Explore Business · {peso(planMonthly("Business", billCycle))}/mo</button></div><button onClick={() => setShowEmployerSwipeUpsell(false)} className="mt-4 w-full rounded-xl py-2 text-sm font-semibold text-[#686781] hover:bg-slate-50">Maybe later</button><p className="mt-2 text-center text-[11px] text-[#9a99ab]">Free plan: {candidateSwipesUsed}/{FREE_SWIPE_LIMIT} swipes used this session.</p></section></div>}
       {notice && <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white text-[#03012d] text-sm font-semibold px-5 py-3 rounded-full shadow-xl z-50">{notice}</div>}
     </div>
   );
@@ -3274,7 +3286,7 @@ type SeekerJob = typeof jobListings[number];
 const tierBadge: Record<string, string> = { green: "bg-emerald-100 text-emerald-700", orange: "bg-amber-100 text-amber-700", red: "bg-red-100 text-red-700" };
 const seekerNav = [
   { label: "Home", icon: Home }, { label: "Search", icon: Search }, { label: "Messages", icon: MessageCircle, badge: 3 },
-  { label: "Saved Jobs", icon: Bookmark }, { label: "Calendar", icon: CalendarDays }, { label: "Profile", icon: User }, { label: "Settings", icon: Settings },
+  { label: "Saved Jobs", icon: Bookmark }, { label: "Profile", icon: User }, { label: "Calendar", icon: CalendarDays }, { label: "Settings", icon: Settings },
 ];
 const seekerTabs = [{ label: "For You", icon: Sparkles }, { label: "Remote", icon: Globe }, { label: "On-site", icon: Building2 }, { label: "Hybrid", icon: Monitor }];
 const quickTips = ["Complete your profile to get better matches", "Keep your skills up to date", "Be active to get noticed by employers", "Upload your latest resume", "Add certifications to stand out", "Respond to interview invites quickly"];
@@ -3286,18 +3298,22 @@ const activitySeed = [
 
 function SeekerCard({ job, score, tier, canLike, onPass, onLike, onDetails }: { job: SeekerJob; score: number; tier: string; canLike: boolean; onPass: () => void; onLike: () => void; onDetails: () => void }) {
   const x = useMotionValue(0);
+  const pinchGesture = useRef(false);
   const rotate = useTransform(x, [-200, 200], [-12, 12]);
   return (
     <motion.div
       className="absolute inset-0 touch-pan-y bg-white rounded-3xl shadow-2xl border border-[#cdccd5]/60 overflow-hidden flex flex-col cursor-grab active:cursor-grabbing z-10"
-      style={{ x, rotate }}
+      style={{ x, rotate, touchAction: "pan-y pinch-zoom" }}
       drag="x"
       dragDirectionLock
       dragMomentum={false}
       dragSnapToOrigin
       dragConstraints={{ left: -300, right: canLike ? 300 : 0 }}
       dragElastic={canLike ? 0.6 : { left: 0.6, right: 0.1 }}
+      onPointerDownCapture={event => { if (event.pointerType === "touch" && event.isPrimary === false) pinchGesture.current = true; else if (event.pointerType === "touch") pinchGesture.current = false; }}
+      onTouchStartCapture={event => { pinchGesture.current = event.touches.length > 1; }}
       onDragEnd={(_, info) => {
+        if (pinchGesture.current) { pinchGesture.current = false; return; }
         const movedLeft = info.offset.x < -60 || (info.offset.x < -25 && info.velocity.x < -450);
         const movedRight = info.offset.x > 60 || (info.offset.x > 25 && info.velocity.x > 450);
         if (movedLeft) onPass();
@@ -3413,6 +3429,7 @@ function SeekerMessagesPage({ conversations, setConversations }: { conversations
           </>}
         </section>
       </div>
+
       {notice && <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-[#03012d] text-white text-sm font-semibold px-5 py-3 rounded-full shadow-xl z-[70]">{notice}</div>}
     </main>
   );
@@ -3450,6 +3467,8 @@ function JobSeekerView({ userName, onBack, events, setEvents }: { userName: stri
   const [notificationPrefs, setNotificationPrefs] = useState({ system: true, matches: true, messages: true, applications: true, employer: true, calendar: true, advice: false, promotions: false });
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(true);
   const [currentPlan, setCurrentPlan] = useState("Free");
+  const [swipesUsed, setSwipesUsed] = useState(0);
+  const [showSeekerSwipeUpsell, setShowSeekerSwipeUpsell] = useState(false);
   const [billingCadence, setBillingCadence] = useState("Monthly");
   const [seekerCheckout, setSeekerCheckout] = useState<PlanName | null>(null);
   const [seekerPayment, setSeekerPayment] = useState({ number: "", name: "", expiry: "", cvc: "" });
@@ -3467,6 +3486,14 @@ function JobSeekerView({ userName, onBack, events, setEvents }: { userName: stri
   const [sfSkill, setSfSkill] = useState("");
 
   const flash = (msg: string) => { setNotice(msg); setTimeout(() => setNotice(""), 2800); };
+  const handleSwipeLimit = (action: () => void) => {
+    if (currentPlan === "Free" && swipesUsed >= FREE_SWIPE_LIMIT) {
+      setShowSeekerSwipeUpsell(true);
+      return;
+    }
+    action();
+    if (currentPlan === "Free") setSwipesUsed(count => count + 1);
+  };
   const closeSeekerCheckout = () => { setSeekerCheckout(null); setSeekerPayment({ number: "", name: "", expiry: "", cvc: "" }); };
   const pinCurrentLocation = () => {
     if (!navigator.geolocation) return flash("Location detection is not supported in this browser.");
@@ -3609,16 +3636,16 @@ function JobSeekerView({ userName, onBack, events, setEvents }: { userName: stri
             )}
           </div>
           <button aria-label="Notifications" className="relative w-11 h-11 rounded-full bg-white border border-[#cdccd5] flex items-center justify-center shrink-0"><Bell size={18} /><span className="absolute top-2.5 right-3 w-2 h-2 bg-orange-500 rounded-full"></span></button>
-          <button onClick={() => setModal("profile")} className="flex items-center gap-3 shrink-0 text-left">
+          <button onClick={() => setNav("Profile")} aria-label="Open your profile" className="flex items-center gap-3 shrink-0 text-left">
             <Avatar name={userProfile.name} className="w-11 h-11 text-sm" />
             <span className="hidden sm:block leading-tight"><span className="block font-bold text-sm">{userProfile.name}</span><span className="block text-xs text-[#686781]">Job Seeker Account</span></span>
           </button>
         </header>
 
-        <div className="lg:hidden flex gap-2 overflow-x-auto px-4 pb-2">
-          {seekerNav.map(item => <button key={item.label} onClick={() => setNav(item.label)} className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap ${nav === item.label ? "bg-[#353457] text-white" : "bg-white border border-[#cdccd5] text-[#686781]"}`}>{item.label}</button>)}
-          <button onClick={onBack} className="px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap bg-white border border-[#cdccd5] text-[#686781]">Log Out</button>
-        </div>
+        <nav aria-label="Job seeker pages" className="lg:hidden flex gap-2 overflow-x-auto overscroll-x-contain touch-pan-x snap-x snap-mandatory px-4 pb-2">
+          {seekerNav.map(item => <button key={item.label} onClick={() => setNav(item.label)} className={`shrink-0 snap-start px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap ${nav === item.label ? "bg-[#353457] text-white" : "bg-white border border-[#cdccd5] text-[#686781]"}`}>{item.label}</button>)}
+          <button onClick={onBack} className="shrink-0 snap-start px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap bg-white border border-[#cdccd5] text-[#686781]">Log Out</button>
+        </nav>
 
         {nav === "Home" && (
           <main className="flex-1 grid xl:grid-cols-[minmax(0,1fr)_330px] gap-5 p-4 lg:px-6 lg:pb-6 overflow-y-auto">
@@ -3629,6 +3656,7 @@ function JobSeekerView({ userName, onBack, events, setEvents }: { userName: stri
                   <p className="text-xl font-extrabold">Swipe. Match. Get Hired.</p>
                   <p className="text-sm text-[#686781] mt-1 max-w-sm">Discover job opportunities that match your skills, experience, and career goals.</p>
                   <p className="text-xs font-semibold text-[#353457] mt-1">Swipe left to pass or right to like.</p>
+                  {currentPlan === "Free" && <p className="text-xs font-semibold text-indigo-700 mt-1">Free swipes used: {swipesUsed}/{FREE_SWIPE_LIMIT}</p>}
                 </div>
                 <div className={`${card} p-4 flex items-center gap-4`}>
                   <div className="relative w-16 h-16 shrink-0">
@@ -3651,11 +3679,11 @@ function JobSeekerView({ userName, onBack, events, setEvents }: { userName: stri
                     {visible[2] && <div className="absolute inset-0 translate-x-6 rotate-6 scale-90 opacity-60 bg-white rounded-3xl border border-[#cdccd5]/60 shadow-lg p-5 pt-48"><p className="text-xs text-[#686781]">{visible[2].company}</p><p className="font-bold">{visible[2].title}</p></div>}
                     {visible[1] && <div className="absolute inset-0 -translate-x-6 -rotate-6 scale-90 opacity-70 bg-white rounded-3xl border border-[#cdccd5]/60 shadow-lg p-5 pt-48"><p className="text-xs text-[#686781]">{visible[1].company}</p><p className="font-bold">{visible[1].title}</p><span className={`inline-block mt-1 text-[11px] font-bold px-2 py-0.5 rounded-full ${tierBadge[matchOf(visible[1]).tier]}`}>{matchOf(visible[1]).score}% Match</span></div>}
                     <AnimatePresence mode="popLayout">
-                      <SeekerCard key={top.id} job={top} score={matchOf(top).score} tier={matchOf(top).tier} canLike={matchOf(top).tier !== "red"} onPass={() => removeJob(top.id)} onLike={() => likeJob(top)} onDetails={() => setDetailsJob(top)} />
+                      <SeekerCard key={top.id} job={top} score={matchOf(top).score} tier={matchOf(top).tier} canLike={matchOf(top).tier !== "red"} onPass={() => handleSwipeLimit(() => removeJob(top.id))} onLike={() => handleSwipeLimit(() => likeJob(top))} onDetails={() => setDetailsJob(top)} />
                     </AnimatePresence>
                   </div>
                   <div className="flex items-start justify-center gap-8 mt-5">
-                    {([["Pass", X, "text-red-500", () => removeJob(top.id)], ["Save", Bookmark, "text-[#353457]", () => saveJob(top)], ["Like", Heart, "text-emerald-500", () => likeJob(top)]] as const).map(([label, Icon, color, onClick]) => (
+                    {([["Pass", X, "text-red-500", () => handleSwipeLimit(() => removeJob(top.id))], ["Save", Bookmark, "text-[#353457]", () => handleSwipeLimit(() => saveJob(top))], ["Like", Heart, "text-emerald-500", () => handleSwipeLimit(() => likeJob(top))]] as const).map(([label, Icon, color, onClick]) => (
                       <button key={label} onClick={onClick} className="flex flex-col items-center gap-2 group" aria-label={label}>
                         <span className={`w-16 h-16 rounded-full bg-white shadow-lg border border-[#cdccd5]/50 flex items-center justify-center ${color} group-hover:scale-105 transition-transform`}><Icon size={28} /></span>
                         <span className="text-sm font-semibold text-[#353457]">{label}</span>
@@ -4033,7 +4061,7 @@ function JobSeekerView({ userName, onBack, events, setEvents }: { userName: stri
               {detailsJob.reqCerts.length > 0 && <p><span className="font-semibold">Certifications:</span> {detailsJob.reqCerts.map(c => <span key={c} className={userProfile.certs.includes(c) ? "text-emerald-600" : "text-red-500"}>{c}{" "}</span>)}</p>}
               <div className="flex flex-wrap gap-1.5">{detailsJob.reqSkills.map(sk => <span key={sk} className={`text-xs px-2.5 py-1 rounded-full ${userProfile.skills.includes(sk) ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>{userProfile.skills.includes(sk) ? "\u2713 " : ""}{sk}</span>)}</div>
             </div>
-            <div className="grid grid-cols-2 gap-3 mt-5"><button onClick={() => { saveJob(detailsJob); setDetailsJob(null); }} className="py-3 rounded-xl border border-[#cdccd5] text-sm font-semibold">Save</button><button onClick={() => { const j = detailsJob; setDetailsJob(null); likeJob(j); }} className="py-3 rounded-xl bg-[#03012d] text-white text-sm font-bold hover:bg-[#353457]">Like</button></div>
+            <div className="grid grid-cols-2 gap-3 mt-5"><button onClick={() => { const j = detailsJob; setDetailsJob(null); handleSwipeLimit(() => saveJob(j)); }} className="py-3 rounded-xl border border-[#cdccd5] text-sm font-semibold">Save</button><button onClick={() => { const j = detailsJob; setDetailsJob(null); handleSwipeLimit(() => likeJob(j)); }} className="py-3 rounded-xl bg-[#03012d] text-white text-sm font-bold hover:bg-[#353457]">Like</button></div>
           </div>
         </div>
       ); })()}
@@ -4052,6 +4080,7 @@ function JobSeekerView({ userName, onBack, events, setEvents }: { userName: stri
         </div>
       )}
 
+      {showSeekerSwipeUpsell && <div className="fixed inset-0 z-[75] flex items-center justify-center bg-[#03012d]/75 p-4" onClick={() => setShowSeekerSwipeUpsell(false)}><section role="dialog" aria-modal="true" aria-labelledby="seeker-swipe-upsell-title" onClick={e => e.stopPropagation()} className="w-full max-w-md rounded-3xl bg-white p-6 text-[#03012d] shadow-2xl"><div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-100 text-amber-600"><Crown size={28} /></div><h2 id="seeker-swipe-upsell-title" className="mt-4 text-center text-2xl font-extrabold">You found your free matches</h2><p className="mt-2 text-center text-sm text-[#686781]">You used all {FREE_SWIPE_LIMIT} free job swipes in this demo. Upgrade to Pro for unlimited swipes and premium career insights.</p><div className="mt-5 grid gap-3 sm:grid-cols-2"><button onClick={() => { setShowSeekerSwipeUpsell(false); setSeekerCheckout("Pro"); }} className="rounded-xl bg-[#353457] px-4 py-3 text-sm font-bold text-white hover:bg-[#03012d]">Try Pro · {peso(planMonthly("Pro", billingCadence))}/mo</button><button onClick={() => { setShowSeekerSwipeUpsell(false); setNav("Settings"); setSettingsTab("Subscription"); }} className="rounded-xl border border-amber-400 bg-amber-50 px-4 py-3 text-sm font-bold text-[#353457] hover:bg-amber-100">See all plans</button></div><button onClick={() => setShowSeekerSwipeUpsell(false)} className="mt-4 w-full rounded-xl py-2 text-sm font-semibold text-[#686781] hover:bg-slate-50">Maybe later</button><p className="mt-2 text-center text-[11px] text-[#9a99ab]">Free plan: {swipesUsed}/{FREE_SWIPE_LIMIT} swipes used this session.</p></section></div>}
       {notice && <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-[#03012d] text-white text-sm font-semibold px-5 py-3 rounded-full shadow-xl z-[70]">{notice}</div>}
     </div>
   );
