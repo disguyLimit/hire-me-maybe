@@ -662,6 +662,7 @@ function EmployerView({ onBack, events, setEvents }: { onBack: () => void; event
   const pinchGesture = useRef(false);
   const [candidateSwipesUsed, setCandidateSwipesUsed] = useState(0);
   const [showEmployerSwipeUpsell, setShowEmployerSwipeUpsell] = useState(false);
+  const [showAccountMenu, setShowAccountMenu] = useState(false);
   const [shortlisted, setShortlisted] = useState<number[]>([]);
   const [notice, setNotice] = useState("");
   const [query, setQuery] = useState("");
@@ -1265,7 +1266,7 @@ function EmployerView({ onBack, events, setEvents }: { onBack: () => void; event
 
       <div className="flex-1 flex flex-col min-w-0 lg:overflow-hidden">
         {/* TOP BAR */}
-        <header className="flex items-center gap-4 p-4 lg:px-6">
+        <header className="relative z-50 flex items-center gap-3 p-4 lg:gap-4 lg:px-6">
           <div className="relative flex-1 max-w-xl">
             <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#9a99ab]" />
             <input value={query} onChange={(e) => { setQuery(e.target.value); setDeckPos(0); }} placeholder="Search candidates, skills, or keywords..." className="w-full bg-white/10 border border-white/10 rounded-full py-3 pl-11 pr-4 text-sm placeholder:text-[#9a99ab] focus:outline-none focus:border-white/40" />
@@ -1274,13 +1275,23 @@ function EmployerView({ onBack, events, setEvents }: { onBack: () => void; event
             <Bell size={18} />
             <span className="absolute top-2.5 right-3 w-2 h-2 bg-purple-400 rounded-full"></span>
           </button>
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="w-11 h-11 rounded-xl bg-[#03012d] border border-white/10 flex items-center justify-center"><Building2 size={20} /></div>
-            <div className="hidden sm:block leading-tight">
-              <p className="font-bold text-sm">{companyName}</p>
-              <p className="text-xs text-[#9a99ab]">Employer Account</p>
-            </div>
-            <button onClick={onBack} className="lg:hidden text-xs text-[#cdccd5] ml-2">Log Out</button>
+          <div className="relative shrink-0">
+            <button onClick={() => setShowAccountMenu(open => !open)} aria-label="Company profile and account options" aria-expanded={showAccountMenu} className="flex items-center gap-2 rounded-xl p-1.5 text-left hover:bg-white/10">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-[#03012d]"><Building2 size={20} /></span>
+              <span className="text-xs font-semibold text-white sm:hidden">Profile</span>
+              <span className="hidden leading-tight sm:block"><span className="block text-sm font-bold">{companyName}</span><span className="block text-xs text-[#9a99ab]">Employer Account</span></span>
+              <ChevronDown size={15} className="text-[#cdccd5]" />
+            </button>
+            {showAccountMenu && <>
+              <button aria-label="Close account menu" onClick={() => setShowAccountMenu(false)} className="fixed inset-0 z-40 cursor-default" />
+              <div className="absolute right-0 top-full z-50 mt-2 w-60 overflow-hidden rounded-2xl border border-[#cdccd5]/50 bg-white p-2 text-[#03012d] shadow-2xl">
+                <div className="border-b border-[#cdccd5]/50 px-3 py-2 sm:hidden"><p className="truncate text-sm font-bold">{companyName}</p><p className="text-[11px] text-[#686781]">Employer Account</p></div>
+                <button onClick={() => { setShowAccountMenu(false); setActiveNav("Company Profile"); }} className="w-full rounded-xl px-3 py-2.5 text-left text-sm font-semibold hover:bg-slate-100"><Building2 size={16} className="mr-2 inline" />View Company Profile</button>
+                <button onClick={() => { setShowAccountMenu(false); setAcctDraft(company); setSection("Account Settings"); setActiveNav("Settings"); }} className="w-full rounded-xl px-3 py-2.5 text-left text-sm font-semibold hover:bg-slate-100"><Settings size={16} className="mr-2 inline" />Settings</button>
+                <button onClick={() => { setShowAccountMenu(false); setAcctDraft(company); setSection("Subscription & Billing"); setActiveNav("Settings"); }} className="w-full rounded-xl px-3 py-2.5 text-left text-sm font-semibold hover:bg-slate-100"><CreditCard size={16} className="mr-2 inline" />Subscription & Billing</button>
+                <button onClick={() => { setShowAccountMenu(false); onBack(); }} className="mt-1 w-full rounded-xl border-t border-[#cdccd5]/50 px-3 py-2.5 text-left text-sm font-semibold text-[#686781] hover:bg-slate-100">Log Out</button>
+              </div>
+            </>}
           </div>
         </header>
 
